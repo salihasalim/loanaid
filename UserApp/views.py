@@ -5,9 +5,6 @@ from django.db.models.functions import TruncMonth, TruncYear
 from django.http import JsonResponse
 from datetime import datetime
 from django.core.exceptions import ObjectDoesNotExist
-
-from django.template.context_processors import request
-
 from UserApp.models import *
 from UserApp.forms import *
 from dashboard.views import *
@@ -16,17 +13,17 @@ from dashboard.views import *
 
 
 def home(request):
-    user = request.session.get('user', None)
-    if user is None:
+    user_id = request.session.get('user_id', None)  # Corrected session retrieval
+    if user_id is None:
         return redirect('/login')
     else:
-        admin = AdminModel.objects.get(admin_id=user)
+        admin = AdminModel.objects.get(admin_id=user_id)
         if admin.admin_last_name:
             admin_name = f"{admin.admin_first_name} {admin.admin_last_name}"
         else:
             admin_name = f"{admin.admin_first_name}"
         loan_form = LoanApplicationModel.objects.filter(
-            assigned_to=user
+            assigned_to=user_id
         )
         accepted_loans = loan_form.filter(workstatus='Accept')
         new_loans = loan_form.filter(workstatus='Not selected')
@@ -35,7 +32,7 @@ def home(request):
         today = datetime.now().date()
         all_loans = LoanApplicationModel.objects.filter(
             followup_date=today, workstatus='Accept')
-        loan_followup = all_loans.filter(assigned_to=user)
+        loan_followup = all_loans.filter(assigned_to=user_id)
         all_users = AdminModel.objects.filter(is_superadmin=False)
         all_users_count = all_users.count()
         loan_app = LoanApplicationModel.objects.all()
@@ -73,6 +70,7 @@ def home(request):
                 'login_success': login_success
             }
         return render(request, 'index.html', context)
+
 
 
 def login(request):
@@ -114,20 +112,24 @@ def login(request):
                 pass
 
         if user:
-            request.session['user_id'] = user.pk  # Store user ID
+            # Set session (make sure session key is consistent)
+            print(f"Setting session for user ID: {user.pk}")  # Debug statement
+            request.session['user_id'] = user.pk  # Use 'user_id' everywhere
             request.session['user_type'] = user_type  # Store user type
             request.session.set_expiry(3600)  # Session expiry time (1 hour)
-            
+
+            # Redirect based on user type
             if user_type == 'admin':
-                return redirect('dashboard')
+                return redirect('/')
             elif user_type == 'franchise':
-                return redirect('franchise_dashboard')
+                return redirect('/franchise/dashboard/')
             elif user_type == 'staff':
-                return redirect('staff_dashboard')
+                return redirect('/staff/dashboard/')
         else:
             error = "Invalid credentials"
 
     return render(request, 'login.html', {'error': error})
+
 
 
 def register(request):
@@ -145,18 +147,16 @@ def register(request):
 
 
 def logout(request):
-    del request.session['user']
+    del request.session['user_id']
     return redirect('/')
 
-  # Redirect to the main assignments page
-
-
+  
 def update_profile(request):
-    user = request.session.get('user', None)
-    if user is None:
+    user_id = request.session.get('user_id', None)  # Corrected session retrieval
+    if user_id is None:
         return redirect('/login')
 
-    admin = AdminModel.objects.get(admin_id=user)
+    admin = AdminModel.objects.get(admin_id=user_id)
     if admin.admin_last_name:
         admin_name = f"{admin.admin_first_name} {admin.admin_last_name}"
     else:
@@ -180,11 +180,11 @@ def update_profile(request):
 
 
 def view_staffs(request, id):
-    user = request.session.get('user', None)
-    if user is None:
+    user_id = request.session.get('user_id', None)  # Corrected session retrieval
+    if user_id is None:
         return redirect('/login')
 
-    admin = AdminModel.objects.get(admin_id=user)
+    admin = AdminModel.objects.get(admin_id=user_id)
     if admin.admin_last_name:
         admin_name = f"{admin.admin_first_name} {admin.admin_last_name}"
     else:
@@ -195,15 +195,13 @@ def view_staffs(request, id):
     return render(request, 'all_staffs.html', {'profiles': staff, 'username': admin_name})
 
 
-
-
 def create_staff(request):
-    user = request.session.get('user', None)
-    if user is None:
+    user_id = request.session.get('user_id', None)  # Corrected session retrieval
+    if user_id is None:
         return redirect('/login')
     
     try:
-        admin = AdminModel.objects.get(admin_id=user)
+        admin = AdminModel.objects.get(admin_id=user_id)
         # Check if the user is an admin
         if not admin.is_superadmin:
             return redirect('/')  # Redirect non-admin users to home page

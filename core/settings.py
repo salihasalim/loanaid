@@ -132,3 +132,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# settings.py
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # This is the default.
+SESSION_COOKIE_AGE = 3600  # Set the session timeout to 1 hour
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Ensure the session does not expire when the browser is closed
+
