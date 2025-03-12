@@ -30,7 +30,7 @@
                         >
                           <i
                             class="fas fa-user fa-2x"
-                            style="color: #004647"
+                            style="color:#8eaed7"
                           ></i>
                         </div>
                       </div>
@@ -369,70 +369,61 @@
               </div>
             </div>
             {% if admin.is_superadmin %}
-            <!-- Content Row -->
+<!-- Content Row -->
             <div class="row">
               <!-- Content Column -->
               <div class="col-lg-12 mb-4">
                 <!-- Project Card Example -->
                 <div class="card shadow mb-4">
                   <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">All Users</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">All Staff</h6>
                   </div>
                   <div class="card-body">
                     <div class="table-responsive-xxl">
-                      <table class="table table-bordered table-hover all-users">
+                      <table class="table table-bordered table-hover all-staff">
                         <thead>
                           <tr>
                             <th scope="col">Sr. No</th>
                             <th scope="col">First Name</th>
                             <th scope="col">Last Name</th>
                             <th scope="col">Email</th>
+                            <th scope="col">Phone</th> <!-- Added phone column for staff -->
                             <th scope="col">Action</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {% for all_user in all_users %}
+                          {% for staff in all_staff %}
                           <tr>
-                            <th scope="row">{{ forloop.counter }}</th>
-                            <td>{{all_user.admin_first_name}}</td>
-                            <td>{{all_user.admin_last_name}}</td>
-                            <td>{{all_user.admin_email}}</td>
+                            <td>{{ forloop.counter }}</td> <!-- Added serial number -->
+                            <td>{{ staff.first_name }}</td>
+                            <td>{{ staff.last_name }}</td>
+                            <td>{{ staff.email }}</td>
+                            <td>{{ staff.phone_no }}</td> <!-- Displaying phone number -->
                             <td>
-                              <a
-                                href="{% url 'view_profile' all_user.admin_id %}"
-                                ><i class="fa fa-eye" style="color: green"></i
-                              ></a>
-                              <form
-                                action="{% url 'delete_user' all_user.admin_id %}"
-                                method="post"
-                                style="display: inline"
-                              >
-                                {% csrf_token %}
-                                <button
-                                  type="submit"
-                                  class="btn"
-                                  onclick="return confirm('Are you sure you want to delete this?');"
-                                >
-                                  <i
-                                    class="fa fa-trash-alt"
-                                    style="color: red"
-                                  ></i>
-                                </button>
-                              </form>
+                              {% if staff.staff_id %}
+                                <a href="{% url 'view_profile' staff.staff_id %}">
+                                  <i class="fa fa-eye" style="color: green"></i>
+                                </a>
+                                <form action="{% url 'delete_staff' staff.staff_id %}" method="post" style="display: inline">
+                                  {% csrf_token %}
+                                  <button type="submit" class="btn" onclick="return confirm('Are you sure you want to delete this staff member?');">
+                                    <i class="fa fa-trash-alt" style="color: red"></i>
+                                  </button>
+                                </form>
+                              {% else %}
+                                <span>Missing ID</span>
+                              {% endif %}
                             </td>
-                            {% endfor %}
                           </tr>
+                          {% endfor %}
                         </tbody>
                       </table>
-                      <!--                                        &lt;!&ndash; Pagination Controls &ndash;&gt;-->
+
+                      <!-- Pagination Controls -->
                       <div class="pagination">
-                        <button class="prev" onclick="changePage(-1)">
-                          &#10094; Prev
-                        </button>
-                        <span id="user-info"></span>
-                        <button class="next" onclick="changePage(1)">
-                          Next &#10095;
-                        </button>
+                        <button class="prev" onclick="changePage(-1)">&#10094; Prev</button>
+                        <span id="staff-info"></span>
+                        <button class="next" onclick="changePage(1)">Next &#10095;</button>
                       </div>
                     </div>
                   </div>
@@ -440,6 +431,8 @@
               </div>
             </div>
             {% endif %}
+
+
           </div>
           <!-- /.container-fluid -->
         </div>

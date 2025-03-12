@@ -13,6 +13,5 @@ urlpatterns = [
     path('delete_loan/<int:loan_id>/', views.delete_loan, name='delete_loan'),
     path('delete_status/<int:status_id>/', views.delete_status, name='delete_status'),
     path('delete_bank/<int:bank_id>/', views.delete_bank, name='delete_bank'),
-    path('delete_user/<int:admin_id>/', views.delete_user, name='delete_user'),
     path('delete_loan_page/<int:form_id>/', views.delete_loanpage, name='delete_loan_page'),
 ]

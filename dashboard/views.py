@@ -17,80 +17,31 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 def dashboard(request):
-    # Debug: Check session data
-    print(f"User session: {request.session.get('user', None)}")  # Debug statement
-    
-    user_id = request.session.get('user', None)
-    user_type = request.session.get('user_type', None)
+    # Retrieve the correct session data
+    user_id = request.session.get('user_id')  # Match the key from login session
+    user_type = request.session.get('user_type')
 
-    if user_id is None:
-        print("No user session found, redirecting to login.")  # Debug statement
-        return redirect('/login')
-
-    user = None
-
-    # Fetch user based on the session data
-    if user_type == 'admin':
-        try:
-            user = AdminModel.objects.get(admin_id=user_id)
-        except AdminModel.DoesNotExist:
-            print(f"Admin with ID {user_id} does not exist.")  # Debug statement
-            return redirect('/login')
-
-    elif user_type == 'franchise':
-        try:
-            user = Franchise.objects.get(franchise_id=user_id)
-        except Franchise.DoesNotExist:
-            print(f"Franchise with ID {user_id} does not exist.")  # Debug statement
-            return redirect('/login')
-
-    elif user_type == 'staff':
-        try:
-            user = StaffModel.objects.get(staff_id=user_id)
-        except StaffModel.DoesNotExist:
-            print(f"Staff with ID {user_id} does not exist.")  # Debug statement
-            return redirect('/login')
-
-    else:
-        print("Unknown user type.")  # Debug statement
-        return redirect('/login')
-
-    # Fetch additional data like loan application, status, and progress
-    if user_type == 'admin':
-        username = f"{user.admin_first_name} {user.admin_last_name}" if user.admin_last_name else user.admin_first_name
-        phoneno = user.admin_phone
-    elif user_type == 'franchise':
-        username = user.franchise_name
-        phoneno = user.mobile_no
-    elif user_type == 'staff':
-        username = f"{user.first_name} {user.last_name}" if user.last_name else user.first_name
-        phoneno = user.phone_no
+    if user_id is None or user_type != 'staff':  
+        print("Unauthorized access attempt, redirecting to login.")  
+        return redirect('/login')  
 
     try:
-        loan_application = LoanApplicationModel.objects.get(phone_no=phoneno)
-        status = loan_application.status_name.status_name if loan_application.status_name else "Application Started"
-    except ObjectDoesNotExist:
-        status = None  # If loan application does not exist
+        user = StaffModel.objects.get(pk=user_id)  # Use `pk` (not `staff_id` unless that's your primary key)
+    except StaffModel.DoesNotExist:
+        print(f"Staff with ID {user_id} does not exist.")  
+        return redirect('/login')
 
-    def get_progress_percentage(status):
-        if status == "Application Started":
-            return 1  # Step 1
-        elif status == "Completed":
-            return 3  # Step 3
-        elif status == "Rejected":
-            return 3
-        else:
-            return 2  # Default progress step
+    # Fetch all loans and franchises (only accessible by staff)
+    all_loans = LoanApplicationModel.objects.all()
+    all_franchises = Franchise.objects.all()
 
-    progress_step = get_progress_percentage(status)
-    print(f"Progress step: {progress_step}")  # Debug statement
-    
     context = {
         'user': user,
-        'username': username,
-        'progress_step': progress_step,
-        'status': status,
+        'username': f"{user.first_name} {user.last_name}" if user.last_name else user.first_name,
+        'all_loans': all_loans,
+        'all_franchises': all_franchises,
     }
+
     return render(request, 'dashboard.html', context)
 
 

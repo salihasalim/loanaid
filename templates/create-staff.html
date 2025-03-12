@@ -5,117 +5,113 @@
 <!-- Begin Page Content -->
 <div class="container-fluid">
 
-    <!-- Page Heading -->
+    {% comment %} <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Application</h1>
-    </div>
+        <h1 class="h3 mb-0 text-gray-800">Create Staff Account</h1>
+    </div> {% endcomment %}
 
     <!-- Content Row -->
     <div class="row">
-    </div>
-
-    <!-- Content Row -->
-    <div class="row">
-
-        <!-- Area Chart -->
+        <!-- Form Container -->
         <div class="col-xl-12 col-lg-7">
             <div class="card shadow mb-4">
                 <!-- Card Header - Dropdown -->
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">Profile Update</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Create New Staff</h6>
                 </div>
                 <!-- Card Body -->
                 <div class="card-body">
-                    <form class="p-5 user" method="POST" enctype="multipart/form-data">
+                    <form class="p-5 user" method="POST">
                         {% csrf_token %}
-
-                        <div class="form-group row">
-                            <label for="adhaar_no" class="col-sm-2 col-form-label">Aadhar No:</label>
-                            <div class="col-sm-10">
-                                {{ form.adhaar_no }}
-                            </div>
+                        <div>
+                            <p class="small text-danger">{{ form.non_field_errors }}</p>
                         </div>
 
+                        <!-- First Name -->
                         <div class="form-group row">
-                            <label for="adhaar_img" class="col-sm-2 col-form-label">Upload Aadhar Card:</label>
+                            <label for="id_first_name" class="col-sm-2 col-form-label">First Name</label>
                             <div class="col-sm-10">
-                                {% if user_profile.adhaar_img %}
-                                    <div>
-                                        <a href="{{ user_profile.adhaar_img.url }}">View Aadhar Card</a>
-                                    </div>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <p class="text-danger small">{{ form.first_name.errors }}</p>
                                 {% endif %}
-                                {{ form.adhaar_img }}
                             </div>
                         </div>
 
+                        <!-- Last Name -->
                         <div class="form-group row">
-                            <label for="pan_no" class="col-sm-2 col-form-label">Pan No:</label>
+                            <label for="id_last_name" class="col-sm-2 col-form-label">Last Name</label>
                             <div class="col-sm-10">
-                                {{ form.pan_no }}
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label for="pan_img" class="col-sm-2 col-form-label">Upload Pan Card:</label>
-                            <div class="col-sm-10">
-                                {% if user_profile.pan_img %}
-                                    <div>
-                                        <a href="{{ user_profile.pan_img.url }}">View Pan Card</a>
-                                    </div>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <p class="text-danger small">{{ form.last_name.errors }}</p>
                                 {% endif %}
-                                {{ form.pan_img }}
                             </div>
                         </div>
 
+                        <!-- Email -->
                         <div class="form-group row">
-                            <label for="cancelled_check" class="col-sm-2 col-form-label">Cancelled Check:</label>
+                            <label for="id_email" class="col-sm-2 col-form-label">Email</label>
                             <div class="col-sm-10">
-                                {% if user_profile.cancelled_check %}
-                                    <div>
-                                        <a href="{{ user_profile.cancelled_check.url }}">View Cancelled Check</a>
-                                    </div>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <p class="text-danger small">{{ form.email.errors }}</p>
                                 {% endif %}
-                                {{ form.cancelled_check }}
                             </div>
                         </div>
 
+                        <!-- Phone Number -->
                         <div class="form-group row">
-                            <label for="bank_name" class="col-sm-2 col-form-label">Bank Name:</label>
+                            <label for="id_phone_no" class="col-sm-2 col-form-label">Phone Number</label>
                             <div class="col-sm-10">
-                                {{ form.bank_name }}
+                                {{ form.phone_no }}
+                                {% if form.phone_no.errors %}
+                                    <p class="text-danger small">{{ form.phone_no.errors }}</p>
+                                {% endif %}
                             </div>
                         </div>
 
+                        <!-- Password -->
                         <div class="form-group row">
-                            <label for="ifsc_code" class="col-sm-2 col-form-label">IFSC Code:</label>
+                            <label for="id_password" class="col-sm-2 col-form-label">Password</label>
                             <div class="col-sm-10">
-                                {{ form.ifsc_code }}
+                                {{ form.password }}
+                                {% if form.password.errors %}
+                                    <p class="text-danger small">{{ form.password.errors }}</p>
+                                {% endif %}
                             </div>
                         </div>
 
+                        <!-- Confirm Password -->
                         <div class="form-group row">
-                            <label for="account_no" class="col-sm-2 col-form-label">Account No:</label>
+                            <label for="id_confirm_password" class="col-sm-2 col-form-label">Confirm Password</label>
                             <div class="col-sm-10">
-                                {{ form.account_no }}
+                                {{ form.confirm_password }}
+                                {% if form.confirm_password.errors %}
+                                    <p class="text-danger small">{{ form.confirm_password.errors }}</p>
+                                {% endif %}
                             </div>
                         </div>
 
+                        <!-- Active Status -->
                         <div class="form-group row">
-                            <label for="branch" class="col-sm-2 col-form-label">Branch:</label>
+                            <label for="id_is_active" class="col-sm-2 col-form-label">Active</label>
                             <div class="col-sm-10">
-                                {{ form.branch }}
+                                {{ form.is_active }}
+                                {% if form.is_active.errors %}
+                                    <p class="text-danger small">{{ form.is_active.errors }}</p>
+                                {% endif %}
                             </div>
                         </div>
 
-                        <input type="submit" class="btn btn-primary btn-user btn-block d-block mx-auto" value="UPDATE">
+                        <!-- Submit Button -->
+                        <input type="submit" class="btn btn-primary btn-user btn-block d-block mx-auto" value="Create Staff">
                     </form>
                 </div>
             </div>
         </div>
-
     </div>
 
-    <!-- Content Row -->
 </div>
 <!-- /.container-fluid -->
 
@@ -156,19 +152,9 @@
             <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                <a class="btn btn-primary" href="{% url 'login' %}">Logout</a>
+                <a class="btn btn-primary" href="{% url  'login' %}">Logout</a>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    $(document).ready(function() {
-        $('#assigned_to').select2({
-            placeholder: "Select users",
-            allowClear: true
-        });
-    });
-</script>
-
 {% endblock %}

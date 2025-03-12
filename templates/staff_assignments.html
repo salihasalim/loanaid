@@ -1,124 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    {% load static %}
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-
-    <title>PIBC - Dashboard</title>
-
-    <!-- Custom fonts for this template-->
-    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
-
-    <!-- Custom styles for this template-->
-    <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
-    <style>
-        .logo{
-            height:2.5rem;
-            width:8rem;
-            background-position: center;
-            background-size: cover;
-            background-repeat: no-repeat;
-        }
-        .btn-block{
-            width: 50%!important;
-        }
-
-        .form-select{
-            font-size: 0.8rem!important;
-        }
-        .col-form-label{
-            color: #004647;
-            font-weight:500;
-            text-transform:capitalize;
-        }
-    </style>
-</head>
-
-<body id="page-top">
-
-    <!-- Page Wrapper -->
-    <div id="wrapper">
-
-        <!-- Sidebar -->
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-
-            <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'home' %}">
-                <div class="logo" style="background-image: url({% static 'img/pibc.png' %});"></div>
-            </a>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider my-0">
-
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'home' %}">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
-            </li>
-
-            {% if admin.is_superadmin %}
-            <!-- Nav Item - Form -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'form' %}">
-
-                    <i class="fas fa-fw fa-file"></i>
-                    <span>Application</span></a>
-            </li>
-            {% endif %}
-
-            {% if admin.is_superadmin %}
-            <!-- Nav Item - Form -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'allapp' %}">
-                    <i class="fas fa-list-alt"></i>
-                    <span>All Applications</span></a>
-            </li>
-            {% endif %}
-
-            {% if admin.is_superadmin %}
-            <!-- Nav Item - Form -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'create_user' %}">
-                    <i class="fas fa-fw fa-user-plus"></i>
-                    <span>Create User</span></a>
-            </li>
-            {% endif %}
-
-            {% if admin.is_superadmin %}
-            <!-- Nav Item - Form -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'addloan' %}">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                    <span>Add Loan</span></a>
-            </li>
-            {% endif %}
-
-            {% if admin.is_superadmin %}
-            <!-- Nav Item - Form -->
-            <li class="nav-item">
-                <a class="nav-link" href="{% url 'addstatus' %}">
-                    <i class="fas fa-edit"></i>
-                    <span>Add Status</span></a>
-            </li>
-            {% endif %}
-            <hr class="sidebar-divider d-none d-md-block">
-
-            <!-- Sidebar Toggler (Sidebar) -->
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
-            </div>
-
-        </ul>
-        <!-- End of Sidebar -->
+{% extends 'includes/base.html' %}
+{% load static %}
+{% block content %}
 
         <!-- Content Wrapper -->
         <div id="content-wrapper" class="d-flex flex-column">
@@ -282,7 +164,7 @@
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; PIBC 2024</span>
+                        <span>Copyright &copy; Loan Aid 2024</span>
                     </div>
                 </div>
             </footer>
@@ -319,29 +201,10 @@
         </div>
     </div>
 
-    <!-- Bootstrap core JavaScript-->
-    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
-    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="{% static 'vendor/jquery-easing/jquery.easing.min.js' %}"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="{% static 'js/sb-admin-2.min.js' %}"></script>
-
-    <!-- Page level plugins -->
-    <script src="{% static 'vendor/chart.js/Chart.min.js' %}"></script>
-
-    <!-- Page level custom scripts -->
-    <script src="{% static 'js/demo/chart-area-demo.js' %}"></script>
-    <script src="{% static 'js/demo/chart-pie-demo.js' %}"></script>
 <script>
     function toggleEditForm(assignmentId) {
         document.getElementById("assign-form-" + assignmentId).style.display = "inline";
         document.getElementById("assigned-to-text-" + assignmentId).style.display = "none";
     }
 </script>
-
-</body>
-
-</html>
+{% endblock %}

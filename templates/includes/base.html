@@ -11,7 +11,7 @@
     <meta name="description" content="" />
     <meta name="author" content="" />
 
-    <title>PIBC - Dashboard</title>
+    <title>Loan Aid - Dashboard</title>
 
     <!-- Custom fonts for this template-->
     <link
@@ -81,125 +81,258 @@
         #page-info {
           align-self: center; /* Vertically centers the page info */
         }
+        .progress-tracker {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          margin: 20px 0;
+      }
+      
+      @media (max-width: 576px) {
+          .progress-tracker {
+              flex-direction: column;
+          }
+      }
+      
+      .progress-line {
+          position: absolute;
+          top: 110px;
+          left: 6%;
+          width: 89%;
+          height: 2px;
+          background-color: #d3d3d3;
+          z-index: 0;
+      }
+      
+      
+      .progress-line::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 100%;
+          background-color: #4CAF50; /* Green for completed steps */
+          width: 0; /* This will dynamically change based on completed steps */
+          transition: width 1.3s ease;
+          z-index: 2;
+      }
+      
+              .progress-tracker.step.active::before {
+                  background: #007bff;
+              }
+      
+      
+      .step {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          position: relative;
+          z-index: 1;
+      }
+      
+      .step-circle {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background-color: #d3d3d3;
+          color: white;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 1.2rem;
+      }
+      
+      .step.active .step-circle {
+          background-color: #4aa3f0; /* Active color */
+      }
+      
+      .step.completed .step-circle {
+          background-color: #4CAF50; /* Completed color */
+      }
+      
+      .step-line {
+          height: 2px;
+          width: 100px;
+          background-color: #d3d3d3;
+          position: absolute;
+          top: 20px;
+          left: 50%;
+          z-index: -1;
+      }
+      
+      .step-text {
+          margin-top: 10px;
+          font-size: 1rem;
+      }
+      
+      .step.active .step-text,
+      .step.completed .step-text {
+          font-weight: bold;
+          color: #333;
+      }
+      
+      .step.completed .step-line {
+          background-color: #4CAF50;
+      }
+      
+      /* Mobile-specific styling */
+      @media (max-width: 576px) {
+          .progress-tracker{
+              justify-content: normal;
+              align-items: normal;
+          }
+          .progress-line {
+              width: 2px;
+              height: 50%;
+              top: 25%;
+              left: 10%;
+              transform: translateX(-50%);
+          }
+      
+          .step {
+              flex-direction: row;
+      
+              align-items: center;
+              margin-bottom: 40px;
+          }
+      
+          .step-circle {
+              margin-right: 20px;
+              width: 40px;
+              height: 40px;
+          }
+      
+          .step-text {
+              margin-top: 0;
+              margin-left: 10px;
+          }
+      }
+         
       </style>
     
 
-  </head>
-  <body id="page-top">
-    <!-- Page Wrapper -->
-    <div id="wrapper">
-      
-        <ul
-        class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion"
-        id="accordionSidebar"
-      > 
-        <!-- Sidebar - Brand -->
-        <a
-          class="sidebar-brand d-flex align-items-center justify-content-center"
-          href="{% url 'home' %}"
-        >
-         {% comment %} <div
-            class="logo"
-            style="background-image: url({% static 'img/pibc.png' %})"
-          ></div>  {% endcomment %}
-        </a>
+    </head>
+    <body id="page-top">
+      <!-- Page Wrapper -->
+      <div id="wrapper">
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+          <!-- Sidebar - Brand -->
+          <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'home' %}">
+            {% comment %} <div class="logo" style="background-image: url({% static 'img/Loan Aid.png' %})"></div> {% endcomment %}
+          </a>
   
-        <!-- Divider -->
-        <hr class="sidebar-divider my-0" />
+          <hr class="sidebar-divider my-0" />
   
-        <!-- Nav Item - Dashboard -->
-        <li class="nav-item active">
-          <a class="nav-link" href="{% url 'home' %}">
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Dashboard</span></a
-          >
-        </li>
+          <!-- Nav Item - Dashboard -->
+          <li class="nav-item active">
+            <a class="nav-link" href="{% url 'home' %}">
+              <i class="fas fa-fw fa-tachometer-alt"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
   
-        {% if admin.is_superadmin %}
-        <!-- Nav Item - Form -->
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'form' %}">
-            <i class="fas fa-fw fa-file"></i>
-            <span>Application</span></a
-          >
-        </li>
-        {% endif %} {% if admin.is_superadmin %}
-        <!-- Nav Item - Form -->
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'allapp' %}">
-            <i class="fas fa-list-alt"></i>
-            <span>All Applications</span></a
-          >
-        </li>
-        {% endif %} {% if admin.is_superadmin %}
-        <!-- Nav Item - Form -->
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'create_staff' %}">
-            <i class="fas fa-fw fa-user-plus"></i>
-            <span>Create User</span></a
-          >
-        </li>
-        {% endif %} {% if admin.is_superadmin %}
-        <!-- Nav Item - Form -->
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'addloan' %}">
-            <i class="fas fa-file-invoice-dollar"></i>
-            <span>Add Loan</span></a
-          >
-        </li>
-        {% endif %} {% if admin.is_superadmin %}
-        <!-- Nav Item - Form -->
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'addstatus' %}">
-            <i class="fas fa-edit"></i>
-            <span>Add Status</span></a
-          >
-        </li>
-        {% endif %} {% if admin.is_superadmin %}
-        <!-- Nav Item - Form -->
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'addbank' %}">
-            <i class="fas fa-university"></i>
-            <span>Add Bank</span></a
-          >
-        </li>
-        {% endif %} {% if not admin.is_superadmin %}
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'staff_upload' %}">
-            <i class="fas fa-file-upload"></i>
-            <span>Lead</span></a
-          >
-        </li>
-        {% endif %} {% if admin.is_superadmin %}
-        <!-- Nav Item - Form -->
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'staff_assignments' %}">
-            <i class="fas fa-file-upload"></i>
-            <span>Staff Assignments</span></a
-          >
-        </li>
-        {% endif %} {% if admin.is_superadmin %}
-        <!-- Nav Item - Form -->
-        <li class="nav-item">
-          <a class="nav-link" href="#">
-            <i class="fas fa-user-tie"></i>
-            <span>All Staffs</span></a
-          >
-        </li>
-        {% endif %}
+          {% if admin.is_superadmin %}
+          <!-- Admin-specific items -->
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'form' %}">
+              <i class="fas fa-fw fa-file"></i>
+              <span>Application</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'allapp' %}">
+              <i class="fas fa-list-alt"></i>
+              <span>All Applications</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'create_staff' %}">
+              <i class="fas fa-fw fa-user-plus"></i>
+              <span>Create Staff</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'staff_assignments' %}">
+              <i class="fas fa-fw fa-user-tie"></i>
+              <span>Staff Assignments</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'addloan' %}">
+              <i class="fas fa-file-invoice-dollar"></i>
+              <span>Add Loan</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'addstatus' %}">
+              <i class="fas fa-edit"></i>
+              <span>Add Status</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'addbank' %}">
+              <i class="fas fa-university"></i>
+              <span>Add Bank</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'list_staff' %}">
+              <i class="fas fa-user-tie"></i>
+              <span>All Staffs</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="">
+              <i class="fas fa-building"></i>
+              <span>Add Franchise</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="">
+              <i class="fas fa-building"></i>
+              <span>List Franchise</span>
+            </a>
+          </li>
+          {% endif %}
   
-        <hr class="sidebar-divider d-none d-md-block" />
+          {% if admin.is_franchise %}
+          <!-- Franchise-specific items -->
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'addloan' %}">
+              <i class="fas fa-file-invoice-dollar"></i>
+              <span>Add Loan</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'listloan' %}">
+              <i class="fas fa-list"></i>
+              <span>List Loan</span>
+            </a>
+          </li>
+          {% endif %}
   
-        <!-- Sidebar Toggler (Sidebar) -->
-        <div class="text-center d-none d-md-inline">
-          <button class="rounded-circle border-0" id="sidebarToggle"></button>
-        </div>
-      </ul>
-
-      <!-- Content Wrapper -->
-      <div id="content-wrapper" class="d-flex flex-column">
-        <!-- Main Content -->
-        <div id="content">
+          {% if admin.is_staff %}
+          <!-- Staff-specific items (No Create Staff, No Staff Assignments) -->
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'staff_upload' %}">
+              <i class="fas fa-file-upload"></i>
+              <span>Lead</span>
+            </a>
+          </li>
+          {% endif %}
+  
+          <hr class="sidebar-divider d-none d-md-block" />
+          <!-- Sidebar Toggler (Sidebar) -->
+          <div class="text-center d-none d-md-inline">
+            <button class="rounded-circle border-0" id="sidebarToggle"></button>
+          </div>
+        </ul>
+  
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+          <!-- Main Content -->
+          <div id="content">
           <!-- Topbar -->
           <nav
             class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow"

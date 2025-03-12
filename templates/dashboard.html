@@ -1,451 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-     {% load static %}
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+{% extends 'includes/base.html' %}
+{% load static %}
+{% block content %}
 
-    <title>PIBC - Dashboard</title>
-
-    <!-- Custom fonts for this template-->
-    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
-
-    <!-- Custom styles for this template-->
-    <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
-
-    <style>
- .progress-tracker {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    margin: 20px 0;
-}
-
-@media (max-width: 576px) {
-    .progress-tracker {
-        flex-direction: column;
-    }
-}
-
-.progress-line {
-    position: absolute;
-    top: 110px;
-    left: 6%;
-    width: 89%;
-    height: 2px;
-    background-color: #d3d3d3;
-    z-index: 0;
-}
-
-
-.progress-line::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    background-color: #4CAF50; /* Green for completed steps */
-    width: 0; /* This will dynamically change based on completed steps */
-    transition: width 1.3s ease;
-    z-index: 2;
-}
-
-        .progress-tracker.step.active::before {
-            background: #007bff;
-        }
-
-
-.step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 1;
-}
-
-.step-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #d3d3d3;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.2rem;
-}
-
-.step.active .step-circle {
-    background-color: #4aa3f0; /* Active color */
-}
-
-.step.completed .step-circle {
-    background-color: #4CAF50; /* Completed color */
-}
-
-.step-line {
-    height: 2px;
-    width: 100px;
-    background-color: #d3d3d3;
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    z-index: -1;
-}
-
-.step-text {
-    margin-top: 10px;
-    font-size: 1rem;
-}
-
-.step.active .step-text,
-.step.completed .step-text {
-    font-weight: bold;
-    color: #333;
-}
-
-.step.completed .step-line {
-    background-color: #4CAF50;
-}
-
-/* Mobile-specific styling */
-@media (max-width: 576px) {
-    .progress-tracker{
-        justify-content: normal;
-        align-items: normal;
-    }
-    .progress-line {
-        width: 2px;
-        height: 50%;
-        top: 25%;
-        left: 10%;
-        transform: translateX(-50%);
-    }
-
-    .step {
-        flex-direction: row;
-
-        align-items: center;
-        margin-bottom: 40px;
-    }
-
-    .step-circle {
-        margin-right: 20px;
-        width: 40px;
-        height: 40px;
-    }
-
-    .step-text {
-        margin-top: 0;
-        margin-left: 10px;
-    }
-}
-    </style>
-</head>
-
-<body id="page-top">
-
-    <!-- Page Wrapper -->
-    <div id="wrapper">
-
-        <!-- Sidebar -->
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-
-            <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'home' %}">
-                <div class="logo" style="background-image: url({% static 'img/pibc.png' %});"></div>
-            </a>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider my-0">
-
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
-                <a class="nav-link" href="{% url 'home' %}">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
-            </li>
-
-            <hr class="sidebar-divider d-none d-md-block">
-
-            <!-- Sidebar Toggler (Sidebar) -->
-            <div class="text-center d-none d-md-inline">
-                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="mb-4">
+        <div class="row mb-5">
+            <div class="d-flex flex-column justify-content-center align-items-center icon-box">
+                <i class="fas fa-user" style="color:#004647;"></i>
             </div>
-
-        </ul>
-        <!-- End of Sidebar -->
-
-        <!-- Content Wrapper -->
-        <div id="content-wrapper" class="d-flex flex-column">
-
-            <!-- Main Content -->
-            <div id="content">
-
-                <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-
-                    <!-- Sidebar Toggle (Topbar) -->
-                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                        <i class="fa fa-bars"></i>
-                    </button>
-
-
-
-                    <!-- Topbar Navbar -->
-                    <ul class="navbar-nav ml-auto">
-
-                        <div class="topbar-divider d-none d-sm-block"></div>
-
-                        <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-fw fa-user"></i>
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{username}}</span>
-
-                            </a>
-                            <!-- Dropdown - User Information -->
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="userDropdown">
-                                <a class="dropdown-item" href="#">
-                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Profile
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="{% url 'logout' %}" data-toggle="modal" data-target="#logoutModal">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </a>
-                            </div>
-                        </li>
-
-                    </ul>
-
-                </nav>
-                <!-- End of Topbar -->
-
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
-
-                    <!-- Page Heading -->
-                    <div class="mb-4">
-                        <div class="row mb-5">
-
-                            <div class="d-flex flex-column justify-content-center align-items-center  icon-box">
-                                <i class="fas fa-user" style="color:#004647;"></i>
-                            </div>
-
-                            <div style="text-transform: uppercase;">
-                                Welcome {{username}} !
-                            </div>
-                        </div>
-                        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-
-                    </div>
-
-
-                    <!-- Content Row -->
-
-
-
-                    <!-- Content Row -->
-
-                    <div class="row">
-
-                        <!-- Area Chart -->
-                        <div class="col-xl-12 col-lg-7">
-                            <div class="card shadow mb-4">
-                                <!-- Card Header - Dropdown -->
-                                <div
-                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">All Loans</h6>
-                                </div>
-                                <!-- Card Body -->
-                                <div class="card-body">
-{% if status %}
-<div class="progress-tracker">
-
-    <div class="progress-line"></div> <!-- Continuous line -->
-
-    <!-- Step 1 -->
-    <div class="step {% if progress_step >= 1 %}active{% endif %} {% if progress_step > 1 %}completed{% endif %}"
-    data-status="{% if progress_step >= 1 %}active{% endif %}{% if progress_step > 1 %}completed{% elif progress_step < 1 %}pending{% endif %}">
-        <div class="step-circle">
-        {% if progress_step > 1 %}
-            <i class="fas fa-check-circle"></i>
-        {% else %}
-            <i class="fas fa-spinner"></i> <!-- Placeholder for incomplete step -->
-        {% endif %}
-    </div>
-        <div class="step-text">Application Started</div>
-    </div>
-    {% if status != 'Rejected' and status != 'Application Started' %}
-    <!-- Step 2 -->
-    <div class="step {% if progress_step >= 2 %}active{% endif %} {% if progress_step > 2 %}completed {% endif %}"
-    data-status="{% if progress_step >= 2 %}active{% endif %}{% if progress_step > 2 %}completed{% elif progress_step < 2 %}pending{% endif %}">
-        <div class="step-circle">
-            {% if progress_step > 2 %}
-                <i class="fas fa-check-circle"></i>
-            {% else %}
-                <i class="fas fa-spinner "></i> <!-- In progress -->
-            {% endif %}
+            <div style="text-transform: uppercase;">
+                Welcome {{ username }}!
+            </div>
         </div>
-        <div class="step-text">{{status}}</div>
+        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
     </div>
-    {% endif %}
 
-    <!-- Step 3 -->
-    <div class="step {% if progress_step == 3 %}completed{% endif %} {% if status == 'Rejected' %}completed{% endif %}"
-     data-status="{% if progress_step >= 3 %}completed{% endif %}{% if status == 'Rejected' %}completed{% elif progress_step < 3 %}pending{% endif %}">
-    <div class="step-circle">
-        {% if status == 'Rejected' %}
-            <i class="fas fa-times-circle"></i>
-        {% else %}
-            <i class="fas fa-check-circle"></i>
-        {% endif %}
+    <!-- All Loans Section -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">All Loans</h6>
+                </div>
+                <div class="card-body">
+                    {% if all_loans %}
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Loan ID</th>
+                                    <th>Applicant Name</th>
+                                    <th>Phone Number</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for loan in all_loans %}
+                                <tr>
+                                    <td>{{ loan.id }}</td>
+                                    <td>{{ loan.applicant_name }}</td>
+                                    <td>{{ loan.phone_no }}</td>
+                                    <td>{{ loan.status_name.status_name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No loan applications available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="step-text">
-        {% if status == 'Rejected' %}
-            Rejected
-        {% else %}
-            Completed
-        {% endif %}
+
+    <!-- All Franchises Section -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">All Franchises</h6>
+                </div>
+                <div class="card-body">
+                    {% if all_franchises %}
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Franchise ID</th>
+                                    <th>Name</th>
+                                    <th>Owner</th>
+                                    <th>Phone Number</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for franchise in all_franchises %}
+                                <tr>
+                                    <td>{{ franchise.franchise_id }}</td>
+                                    <td>{{ franchise.franchise_name }}</td>
+                                    <td>{{ franchise.owner_name }}</td>
+                                    <td>{{ franchise.mobile_no }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No franchises available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-</div>
-                                    {% else %}
-                                    <p>No form submitted.</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-
-
-
-                    <!-- Content Row -->
-
-
-
-                </div>
-                <!-- /.container-fluid -->
-
-            </div>
-            <!-- End of Main Content -->
-
-            <!-- Footer -->
-            <footer class="sticky-footer bg-white">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; PIBC 2024</span>
-                    </div>
-                </div>
-            </footer>
-            <!-- End of Footer -->
-
-        </div>
-        <!-- End of Content Wrapper -->
-
-    </div>
-    <!-- End of Page Wrapper -->
-
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="{% url  'login' %}">Logout</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-<!-- Bootstrap core JavaScript-->
-    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
-    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-
-    <!-- Core plugin JavaScript-->
-    <script src="{% static 'vendor/jquery-easing/jquery.easing.min.js' %}"></script>
-
-    <!-- Custom scripts for all pages-->
-    <script src="{% static 'js/sb-admin-2.min.js' %}"></script>
-
-    <!-- Page level plugins -->
-    <script src="{% static 'vendor/chart.js/Chart.min.js' %}"></script>
-
-    <!-- Page level custom scripts -->
-    <script src="{% static 'js/demo/chart-area-demo.js' %}"></script>
-    <script src="{% static 'js/demo/chart-pie-demo.js' %}"></script>
-<script>
-   document.addEventListener('DOMContentLoaded', function () {
-    const steps = document.querySelectorAll('.step');
-    const totalSteps = 3;
-    let currentStep = 0;
-    let status = "{{ status }}";
-
-    // Loop through the steps and find the current step
-    steps.forEach((step, index) => {
-        const status = step.getAttribute('data-status');
-
-        // Mark the step as completed or active
-        if (status === 'completed' || status === 'active') {
-            currentStep = index + 1; // 1-indexed, so we add 1
-            // Change circle color based on status
-            if (status === 'completed') {
-                step.querySelector('.step-circle').style.setProperty('background-color', '#4CAF50', 'important'); // Green for completed
-            } else if (status === 'active') {
-                step.querySelector('.step-circle').style.setProperty('background-color', '#2196F3', 'important'); // Blue for active
-            }
-        }
-    });
-
-    // Calculate the width percentage of the green progress line based on currentStep
-    const progressPercent = ((currentStep - 1) / (totalSteps - 1)) * 100;
-
-    // Create or update a style tag to dynamically apply the width to the pseudo-element
-    let styleTag = document.querySelector('#dynamic-progress-style');
-    if (!styleTag) {
-        styleTag = document.createElement('style');
-        styleTag.id = 'dynamic-progress-style';
-        document.head.appendChild(styleTag);
-    }
-
-    // Update the style rule for the progress line width
-    styleTag.innerHTML = `
-         .progress-line::before {
-            width: ${status === 'Rejected' ? '100%' : progressPercent + '%'} !important;
-            background-color: ${status === 'Rejected' ? '#fa0404' : '#4CAF50'} !important;  /* Change to red if rejected */
-        }
-        .step.completed .step-circle{
-            background-color: ${status === 'Rejected' ? '#da0000' : '#4CAF50'} !important;  /* Change to red if rejected */
-        }
-    `;
-});
-
-</script>
-</body>
-
-</html>
+{% endblock %}

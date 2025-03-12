@@ -8,23 +8,23 @@ from django.core.exceptions import ObjectDoesNotExist
 from UserApp.models import *
 from UserApp.forms import *
 from dashboard.views import *
-
-# Create your views here.
-
+from datetime import datetime
+from django.shortcuts import render, redirect
+from .models import StaffModel, LoanApplicationModel
+from django.contrib import messages
+from django.urls import reverse
 
 def home(request):
-    user_id = request.session.get('user_id', None)  # Corrected session retrieval
+    user_id = request.session.get('user_id', None)
     if user_id is None:
         return redirect('/login')
-    else:
+
+    user_type = request.session.get('user_type', None)
+    if user_type == 'admin':
         admin = AdminModel.objects.get(admin_id=user_id)
-        if admin.admin_last_name:
-            admin_name = f"{admin.admin_first_name} {admin.admin_last_name}"
-        else:
-            admin_name = f"{admin.admin_first_name}"
-        loan_form = LoanApplicationModel.objects.filter(
-            assigned_to=user_id
-        )
+        admin_name = f"{admin.admin_first_name} {admin.admin_last_name if admin.admin_last_name else ''}"
+
+        loan_form = LoanApplicationModel.objects.filter(assigned_to=user_id)
         accepted_loans = loan_form.filter(workstatus='Accept')
         new_loans = loan_form.filter(workstatus='Not selected')
         accepted_loans_count = accepted_loans.count()
@@ -33,50 +33,60 @@ def home(request):
         all_loans = LoanApplicationModel.objects.filter(
             followup_date=today, workstatus='Accept')
         loan_followup = all_loans.filter(assigned_to=user_id)
-        all_users = AdminModel.objects.filter(is_superadmin=False)
-        all_users_count = all_users.count()
+
+        all_staff = StaffModel.objects.all()
+        all_staff_count = all_staff.count()
+
         loan_app = LoanApplicationModel.objects.all()
         loan_app_count = loan_app.count()
         last_loan_app = loan_app.order_by('-form_id')[:10]
 
         login_success = request.GET.get('login_success') == 'true'
+
         if admin.is_superadmin:
             context = {
                 'username': admin_name,
                 'forms': last_loan_app,
                 'loans': all_loans,
-                'total_users_count': all_users_count,
+                'total_staff_count': all_staff_count,
                 'loan_app_count': loan_app_count,
-                'all_users': all_users,
+                'all_staff': all_staff,
                 'admin': admin,
                 'login_success': login_success
             }
         else:
-            if request.method == 'POST':
-                # Check if the user is submitting an update for the status
-                status = request.POST.get('status')
-
-                if status in ['Accept', 'Reject']:
-                    loan_form.workstatus = status
-                    loan_form.save()
             context = {
                 'username': admin_name,
                 'forms': accepted_loans,
                 'new_loans': new_loans,
                 'loans': loan_followup,
-                'total_users_count': all_users_count,
+                'total_staff_count': all_staff_count,
                 'loan_app_count': accepted_loans_count,
                 'admin': admin,
                 'login_success': login_success
             }
-        return render(request, 'index.html', context)
+
+    elif user_type == 'staff':
+        staff = StaffModel.objects.get(staff_id=user_id)
+        admin_name = f"{staff.first_name} {staff.last_name if staff.last_name else ''}"
+        profile_completed = staff.profile_completed
+
+        if not profile_completed:
+            return redirect('/staff/profile/update')
+
+        context = {
+            'username': admin_name,
+            'admin': staff,
+        }
+
+    return render(request, 'index.html', context)
 
 
-
+# Login View
 def login(request):
     error = None
     if request.method == 'POST':
-        identifier = request.POST.get('identifier')  # Email or Phone Number
+        identifier = request.POST.get('identifier')
         password = request.POST.get('password')
 
         user = None
@@ -105,31 +115,27 @@ def login(request):
         if not user:
             try:
                 staff = StaffModel.objects.get(email=identifier)
-                if check_password(password, staff.password):
+                if password == staff.password:
                     user = staff
                     user_type = 'staff'
             except StaffModel.DoesNotExist:
                 pass
 
         if user:
-            # Set session (make sure session key is consistent)
-            print(f"Setting session for user ID: {user.pk}")  # Debug statement
-            request.session['user_id'] = user.pk  # Use 'user_id' everywhere
-            request.session['user_type'] = user_type  # Store user type
-            request.session.set_expiry(3600)  # Session expiry time (1 hour)
+            request.session['user_id'] = user.pk
+            request.session['user_type'] = user_type
+            request.session.set_expiry(3600)
 
-            # Redirect based on user type
             if user_type == 'admin':
                 return redirect('/')
             elif user_type == 'franchise':
                 return redirect('/franchise/dashboard/')
             elif user_type == 'staff':
-                return redirect('/staff/dashboard/')
+                return redirect(reverse('dashboard')) 
         else:
             error = "Invalid credentials"
 
     return render(request, 'login.html', {'error': error})
-
 
 
 def register(request):
@@ -137,9 +143,11 @@ def register(request):
         form = AdminForm(request.POST)
         if form.is_valid():
             admin = form.save(commit=False)
-            admin.admin_password = make_password(form.cleaned_data['admin_password'])  # Hash password
+            admin.admin_password = make_password(
+                form.cleaned_data['admin_password'])  # Hash password
             admin.save()
-            return redirect('login')  # Redirect to login after successful registration
+            # Redirect to login after successful registration
+            return redirect('login')
     else:
         form = AdminForm()
 
@@ -150,92 +158,99 @@ def logout(request):
     del request.session['user_id']
     return redirect('/')
 
-  
+
 def update_profile(request):
-    user_id = request.session.get('user_id', None)  # Corrected session retrieval
+    user_id = request.session.get('user_id', None)
     if user_id is None:
         return redirect('/login')
 
-    admin = AdminModel.objects.get(admin_id=user_id)
-    if admin.admin_last_name:
-        admin_name = f"{admin.admin_first_name} {admin.admin_last_name}"
-    else:
-        admin_name = f"{admin.admin_first_name}"
-
-    user_profile = ProfileUpdate.objects.get(staff=admin)
+    staff = StaffModel.objects.get(staff_id=user_id)
     if request.method == 'POST':
         form = ProfileUpdateForm(
-            request.POST, request.FILES, instance=user_profile)
+            request.POST, request.FILES, instance=staff.profileupdate)
         if form.is_valid():
-            # Do not save yet  # Set the created_at field to now
             profile = form.save(commit=False)
-            profile.staff = admin  # Set assigned_by to the current user
-            profile.save()  # Now save the instance
-            # Redirect to a success page or another page as needed
+            profile.staff = staff
+            profile.save()
+            staff.profile_completed = True  # Mark the profile as completed
+            staff.save()
             return redirect('/')
+
     else:
-        form = ProfileUpdateForm(instance=user_profile)
+        form = ProfileUpdateForm(instance=staff.profileupdate)
 
-    return render(request, 'profile_update.html', {'form': form, 'username': admin_name, 'user_profile': user_profile})
-
-
-def view_staffs(request, id):
-    user_id = request.session.get('user_id', None)  # Corrected session retrieval
-    if user_id is None:
-        return redirect('/login')
-
-    admin = AdminModel.objects.get(admin_id=user_id)
-    if admin.admin_last_name:
-        admin_name = f"{admin.admin_first_name} {admin.admin_last_name}"
-    else:
-        admin_name = f"{admin.admin_first_name}"
-
-    staff = ProfileUpdate.objects.filter(staff=id)
-
-    return render(request, 'all_staffs.html', {'profiles': staff, 'username': admin_name})
+    return render(request, 'profile_update.html', {'form': form, 'username': f"{staff.first_name} {staff.last_name}"})
 
 
 def create_staff(request):
-    user_id = request.session.get('user_id', None)  # Corrected session retrieval
+    user_id = request.session.get('user_id')
     if user_id is None:
         return redirect('/login')
-    
+
     try:
         admin = AdminModel.objects.get(admin_id=user_id)
-        # Check if the user is an admin
         if not admin.is_superadmin:
-            return redirect('/')  # Redirect non-admin users to home page
-            
-        if admin.admin_last_name:
-            admin_name = f"{admin.admin_first_name} {admin.admin_last_name}"
-        else:
-            admin_name = f"{admin.admin_first_name}"
-        
-        # For GET requests, create an empty form
-        # For POST requests, create a form with the submitted data
+            return redirect('/')  # Redirect non-admin users
+
         if request.method == 'POST':
-            form = StaffModelForm(request.POST, user=admin)
+            form = StaffModelForm(request.POST, request.FILES)  # Include files for uploads
             if form.is_valid():
-                # Save the form (which will save the model)
-                staff = form.save()
-                
-                # Create an empty profile for the new staff
-                ProfileUpdate.objects.create(staff=staff)
-                
-                return redirect('/')
+                staff = form.save(commit=False)
+                staff.save()  # Save staff with all details
+                messages.success(request, "Staff member added successfully!")
+                return redirect('/')  # Redirect after successful creation
+            else:
+                messages.error(request, "There was an error in the form. Please correct it.")
+
         else:
-            form = StaffModelForm(user=admin)
-        franchises = Franchise.objects.filter(is_active=True)
-        
-        return render(request, 'create-staff.html', {
-            'username': admin_name, 
-            'admin': admin, 
-            'form': form,
-            'franchises': franchises
-        })
-    
+            form = StaffModelForm()
+
+        return render(request, 'create-staff.html', {'form': form})
+
     except AdminModel.DoesNotExist:
+        return redirect('/login')  # Handle case where admin doesn't exist
+
+
+
+def view_staffs(request, staff_id):
+    user_id = request.session.get('user_id')
+    if user_id is None:
         return redirect('/login')
+
+    try:
+        admin = AdminModel.objects.get(admin_id=user_id)
+        admin_name = f"{admin.admin_first_name} {admin.admin_last_name or ''}".strip()
+        
+        # Fetch staff details
+        staff_member = get_object_or_404(StaffModel, pk=staff_id)
+
+        return render(request, 'staff_detail.html', {
+            'staff_member': staff_member,
+            'admin_name': admin_name
+        })
+
+    except AdminModel.DoesNotExist:
+        messages.error(request, "Admin not found. Please log in again.")
+        return redirect('/login') 
+
+
+def list_staff(request):
+    all_staff = StaffModel.objects.all()
+    context = {'all_staff': all_staff}
+    return render(request, 'all_staffs.html', context)
+
+
+def delete_staff(request, staff_id):
+    staff_member = get_object_or_404(StaffModel, pk=staff_id)
+
+    if request.method == 'POST':
+        LoanApplicationModel.objects.filter(
+            assigned_to=staff_member).update(assigned_to=None)
+
+        staff_member.delete()
+
+        return redirect('/')
+    return redirect('/')
 
 
 def delete_files(request, id):
