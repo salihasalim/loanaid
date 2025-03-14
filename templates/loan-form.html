@@ -1,353 +1,88 @@
 {% extends 'includes/base.html' %}
 {% load static %}
 {% block content %}
-                <!-- End of Topbar -->
-
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
-
-                    <!-- Page Heading -->
-                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                        <h1 class="h3 mb-0 text-gray-800">Application</h1>
-
-                    </div>
-
-                    <!-- Content Row -->
-                    <div class="row">
-
-
-
-                    </div>
-
-                    <!-- Content Row -->
-                    <div class="row">
-
-                        <!-- Area Chart -->
-                        <div class="col-xl-12 col-lg-7">
-                            <div class="card shadow mb-4">
-                                <!-- Card Header - Dropdown -->
-                                <div
-                                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                                    <h6 class="m-0 font-weight-bold text-primary">Applicant</h6>
-                                </div>
-                                <!-- Card Body -->
-                                <div class="card-body">
-                                    <form class="p-5 user" method="POST" enctype="multipart/form-data">
-                                        {% csrf_token %}
-
-                                        <div class="form-group row">
-                                            <label for="first_name" class="col-sm-2 col-form-label">First Name</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.first_name}}
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="last_name" class="col-sm-2 col-form-label">Last Name</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.last_name}}
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="district" class="col-sm-2 col-form-label">District</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.district}}
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="place" class="col-sm-2 col-form-label">Place</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.place}}
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="phone_no" class="col-sm-2 col-form-label">Phone Number</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.phone_no}}
-                                                {% if form.phone_no.errors %}
-                                                    <div class="text-danger">
-                                                        {{ form.phone_no.errors }}
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="job" class="col-sm-2 col-form-label">Job</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.job}}
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="cibil_score" class="col-sm-2 col-form-label">Cibil Score</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.cibil_score}}
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="cibil_issue" class="col-sm-2 col-form-label">Cibil Issue</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.cibil_issue}}
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="it_payable" class="col-sm-2 col-form-label">IT Payable</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.it_payable}}
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="years" class="col-sm-2 col-form-label">Years</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.years}}
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="loan_name" class="col-sm-2 col-form-label">Type of Loan</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.loan_name}}
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group row">
-                                            <label for="loan_amount" class="col-sm-2 col-form-label">Loan Amount</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.loan_amount}}
-                                            </div>
-                                        </div>
-                                        <hr>
-                                        <h6 class="m-0 font-weight-bold text-primary">Guaranter</h6>
-                                        <div class="form-group row">
-                                            <label for="guaranter_name" class="col-sm-2 col-form-label">Name</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.guaranter_name}}
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="guaranter_phoneno" class="col-sm-2 col-form-label">Phone Number</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.guaranter_phoneno}}
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="guaranter_job" class="col-sm-2 col-form-label">Job</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.guaranter_job}}
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="guaranter_cibil_score" class="col-sm-2 col-form-label">Cibil Score</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.guaranter_cibil_score}}
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="guaranter_cibil_issue" class="col-sm-2 col-form-label">Cibil Issue</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.guaranter_cibil_issue}}
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="guaranter_it_payable" class="col-sm-2 col-form-label">IT Payable</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.guaranter_it_payable}}
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="guaranter_years" class="col-sm-2 col-form-label">No of Years</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.guaranter_years}}
-
-                                            </div>
-                                        </div>
-                                        <hr>
-
-                                        <div class="form-group row">
-                                            <label for="followup_date" class="col-sm-2 col-form-label">Follow Up Date</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.followup_date}}
-                                            </div>
-                                        </div>
-
-
-                                        <!-- New Description Box -->
-                                        <div class="form-group row">
-                                            <label for="description" class="col-sm-2 col-form-label">Description</label>
-                                            <div class="col-sm-10">
-                                            {{form.description}}
-                                            </div>
-                                        </div>
-                                        <hr>
-                                        <div class="form-group row">
-                                            <label for="status_name" class="col-sm-2 col-form-label">Status</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.status_name}}
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="application_description" class="col-sm-2 col-form-label">Application Description</label>
-                                            <div class="col-sm-10">
-                                            {{form.application_description}}
-                                                </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="bank_name" class="col-sm-2 col-form-label">Choose Bank</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.bank_name}}
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="executive_name" class="col-sm-2 col-form-label">Executive Name</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.executive_name}}
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="mobileno_1" class="col-sm-2 col-form-label">Mobile No 1:</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.mobileno_1}}
-                                                {% if form.mobileno_1.errors %}
-                                                    <div class="text-danger">
-                                                        {{ form.mobileno_1.errors }}
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="mobileno_2" class="col-sm-2 col-form-label">Mobile No 2:</label>
-                                            <div class="col-sm-10">
-                                                {{form.mobileno_2}}
-                                                {% if form.mobileno_2.errors %}
-                                                    <div class="text-danger">
-                                                        {{ form.mobileno_2.errors }}
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                         <div class="form-group row">
-                                            <label for="files" class="col-sm-2 col-form-label">Assignment Files</label>
-                                            <div class="col-sm-10">
-
-                                                <input type="file" id="files" name="files" multiple>
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="document_description" class="col-sm-2 col-form-label">Document Description</label>
-                                            <div class="col-sm-10">
-                                            {{form.document_description}}
-                                            </div>
-                                        </div>
-                                        <div class="form-group row">
-                                            <label for="assigned_to" class="col-sm-2 col-form-label">Choose User</label>
-                                            <div class="col-sm-10">
-
-                                                {{form.assigned_to}}
-                                            </div>
-                                        </div>
-
-
-
-                                        <input type="submit" class="btn btn-primary btn-user btn-block d-block mx-auto" value="SUBMIT">
-                                    </form>
-                                </div>
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Application</h1>
+    </div>
+    <div class="row">
+        <div class="col-xl-12 col-lg-7">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Applicant Details</h6>
+                </div>
+                <div class="card-body">
+                    <form class="p-5 user" method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <h6 class="m-0 font-weight-bold text-primary">Personal Information</h6>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">First Name</label>
+                            <div class="col-sm-10">{{ form.first_name }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Last Name</label>
+                            <div class="col-sm-10">{{ form.last_name }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">District</label>
+                            <div class="col-sm-10">{{ form.district }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Phone Number</label>
+                            <div class="col-sm-10">{{ form.phone_no }}</div>
+                        </div>
+                        
+                        <h6 class="m-0 font-weight-bold text-primary">Loan Details</h6>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Type of Loan</label>
+                            <div class="col-sm-10">{{ form.loan_name }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Loan Amount</label>
+                            <div class="col-sm-10">{{ form.loan_amount }}</div>
+                        </div>
+                        
+                        <h6 class="m-0 font-weight-bold text-primary">Guarantor Information</h6>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Guarantor Name</label>
+                            <div class="col-sm-10">{{ form.guaranter_name }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Guarantor Phone Number</label>
+                            <div class="col-sm-10">{{ form.guaranter_phoneno }}</div>
+                        </div>
+                        
+                        <h6 class="m-0 font-weight-bold text-primary">Additional Details</h6>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Follow Up Date</label>
+                            <div class="col-sm-10">{{ form.followup_date }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Status</label>
+                            <div class="col-sm-10">{{ form.status_name }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Choose Bank</label>
+                            <div class="col-sm-10">{{ form.bank_name }}</div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Assigned User</label>
+                            <div class="col-sm-10">{{ form.assigned_to }}</div>
+                        </div>
+                        
+                        <div class="form-group row">
+                            <label class="col-sm-2 col-form-label">Upload Files</label>
+                            <div class="col-sm-10">
+                                <input type="file" id="files" name="files" multiple>
                             </div>
                         </div>
-
-                    </div>
-
-
-
-
-                    <!-- Content Row -->
-
-
-
-                </div>
-                <!-- /.container-fluid -->
-
-            </div>
-            <!-- End of Main Content -->
-
-            <!-- Footer -->
-            <footer class="sticky-footer bg-white">
-                <div class="container my-auto">
-                    <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Loan Aid 2024</span>
-                    </div>
-                </div>
-            </footer>
-            <!-- End of Footer -->
-
-        </div>
-        <!-- End of Content Wrapper -->
-
-    </div>
-    <!-- End of Page Wrapper -->
-
-    <!-- Scroll to Top Button-->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
-
-    <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="{% url  'login' %}">Logout</a>
+                        
+                        <input type="submit" class="btn btn-primary btn-user btn-block d-block mx-auto" value="SUBMIT">
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-<script>
-    $(document).ready(function() {
-        $('#assigned_to').select2({
-            placeholder: "Select users",
-            allowClear: true
-        });
-    });
-</script>
-
+</div>
 {% endblock %}

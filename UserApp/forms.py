@@ -69,7 +69,8 @@ class AdminForm(forms.ModelForm):
     def clean_admin_password(self):
         password = self.cleaned_data.get("admin_password")
         if len(password) < 8:
-            raise ValidationError("Password must be at least 8 characters long.")
+            raise ValidationError(
+                "Password must be at least 8 characters long.")
         return password  # Don't hash it here, it's handled in the model's save method
 
     def clean_admin_phone(self):
@@ -162,19 +163,22 @@ class StaffModelForm(forms.ModelForm):
 
         # Check if email already exists, excluding the current instance
         if StaffModel.objects.filter(email=email).exclude(pk=instance.pk).exists():
-            raise ValidationError("A staff member with this email already exists.")
+            raise ValidationError(
+                "A staff member with this email already exists.")
         return email
 
     def clean_phone_no(self):
         phone = self.cleaned_data.get("phone_no")
         if phone and (len(phone) != 10 or not phone.isdigit()):
-            raise ValidationError("Phone Number must be exactly 10 digits and contain only numbers.")
+            raise ValidationError(
+                "Phone Number must be exactly 10 digits and contain only numbers.")
         return phone
 
     def clean_password(self):
         password = self.cleaned_data.get("password")
         if password and len(password) < 8:
-            raise ValidationError("Password must be at least 8 characters long.")
+            raise ValidationError(
+                "Password must be at least 8 characters long.")
         return password  # No hashing here
 
     def clean(self):
@@ -193,6 +197,7 @@ class StaffModelForm(forms.ModelForm):
         if commit:
             staff.save()
         return staff
+
 
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
@@ -222,6 +227,7 @@ class ProfileUpdateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(ProfileUpdateForm, self).__init__(*args, **kwargs)
+
 
 class FranchiseForm(forms.ModelForm):
     confirm_password = forms.CharField(
@@ -294,7 +300,8 @@ class FranchiseForm(forms.ModelForm):
             .exclude(pk=instance.pk if instance.pk else None)
             .exists()
         ):
-            raise ValidationError("A franchise with this email already exists.")
+            raise ValidationError(
+                "A franchise with this email already exists.")
         return email
 
     def clean_mobile_no(self):
@@ -308,7 +315,8 @@ class FranchiseForm(forms.ModelForm):
     def clean_password(self):
         password = self.cleaned_data.get("password")
         if password and len(password) < 8:
-            raise ValidationError("Password must be at least 8 characters long.")
+            raise ValidationError(
+                "Password must be at least 8 characters long.")
         return password  # Don't hash it here, it's handled in the model's save method
 
     def clean(self):
@@ -441,7 +449,8 @@ class LoanApplicationForm(forms.ModelForm):
         self.fields["franchise"].required = False
 
         # Set queryset for assigned_to to show staff members, not admins
-        self.fields["assigned_to"].queryset = StaffModel.objects.filter(is_active=True)
+        self.fields["assigned_to"].queryset = StaffModel.objects.filter(
+            is_active=True)
 
         # Disable fields as per user type or other conditions
         non_editable_fields = [
@@ -497,7 +506,6 @@ class LoanApplicationForm(forms.ModelForm):
             raise ValidationError("Invalid franchise referral code.")
 
         return referral
-
 
 
 class LoanStatusUpdateForm(forms.ModelForm):
@@ -601,56 +609,28 @@ class BankForm(forms.ModelForm):
         }
 
 
-
 class StaffAssignmentForm(forms.ModelForm):
     class Meta:
         model = StaffAssignmentModel
         fields = [
-            "name",
-            "district",
-            "place",
-            "mobile_no",
-            "loan_type",
-            "details",
-            "assign_to",
+            "staff_name",
+            "franchise_name",
+            "franchise_mobile_no",
+            "franchise_place",
+            "assigned_by",  # Add this if needed in the form
+            # If 'assign_to' is a necessary field, include it here as well
         ]
         widgets = {
-            "name": forms.TextInput(
-                attrs={"class": "form-control form-control-user", "placeholder": "Name"}
+            "staff_name": forms.Select(attrs={"class": "form-select form-control"}),
+            "franchise_name": forms.Select(
+                attrs={"class": "form-control form-control-user", "placeholder": "Select Franchise"}
             ),
-            "district": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "District",
-                }
+            "franchise_mobile_no": forms.TextInput(
+                attrs={"class": "form-control form-control-user", "placeholder": "Franchise Mobile No."}
             ),
-            "place": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Place",
-                }
+            "franchise_place": forms.TextInput(
+                attrs={"class": "form-control form-control-user", "placeholder": "Franchise Place"}
             ),
-            "mobile_no": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Mobile No.",
-                }
-            ),
-            "loan_type": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Loan Type",
-                }
-            ),
-            "details": forms.Textarea(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Property Detail/Car Detail",
-                    "rows": 3,
-                    "required": False,
-                }
-            ),
-            "assign_to": forms.Select(attrs={"class": "form-select form-control"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -661,19 +641,27 @@ class StaffAssignmentForm(forms.ModelForm):
         if user and isinstance(user, StaffModel):
             self.instance.assigned_by = user
 
-        # Set the queryset for assign_to to show active staff
-        self.fields["assign_to"].queryset = StaffModel.objects.filter(is_active=True)
+        # If 'assign_to' field exists, set the queryset for it
+        if 'assign_to' in self.fields:
+            self.fields["assign_to"].queryset = StaffModel.objects.filter(is_active=True)
 
-    def clean_mobile_no(self):
-        mobile = self.cleaned_data.get("mobile_no")
+        # Dynamically update the franchise fields
+        if self.instance.franchise_name:
+            self.fields['franchise_mobile_no'].initial = self.instance.franchise_name.mobile_no
+            self.fields['franchise_place'].initial = self.instance.franchise_name.place
+
+        # Disable the fields initially until franchise is selected
+        self.fields['franchise_mobile_no'].widget.attrs['disabled'] = 'disabled'
+        self.fields['franchise_place'].widget.attrs['disabled'] = 'disabled'
+
+
+    def clean_franchise_mobile_no(self):
+        mobile = self.cleaned_data.get("franchise_mobile_no")
         if mobile and (len(mobile) != 10 or not mobile.isdigit()):
             raise ValidationError(
-                "Mobile Number must be exactly 10 digits and contain only numbers."
+                "Franchise Mobile Number must be exactly 10 digits and contain only numbers."
             )
         return mobile
-
-
-
 
 
 class UploadedFileForm(forms.ModelForm):

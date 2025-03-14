@@ -47,7 +47,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware', 
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -134,8 +134,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # settings.py
-
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # This is the default.
-SESSION_COOKIE_AGE = 3600  # Set the session timeout to 1 hour
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Ensure the session does not expire when the browser is closed
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default session backend
+SESSION_COOKIE_AGE = 3600  # 1 hour session expiry
+SESSION_SAVE_EVERY_REQUEST = True  # Ensures session is refreshed on every request
+  # Ensure the session does not expire when the browser is closed
 

@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import logout as django_logout
 from django.contrib.auth.hashers import check_password
 from django.db.models import Count
 from django.db.models.functions import TruncMonth, TruncYear
@@ -13,6 +14,7 @@ from django.shortcuts import render, redirect
 from .models import StaffModel, LoanApplicationModel
 from django.contrib import messages
 from django.urls import reverse
+
 
 def home(request):
     user_id = request.session.get('user_id', None)
@@ -82,7 +84,22 @@ def home(request):
     return render(request, 'index.html', context)
 
 
-# Login View
+def register(request):
+    if request.method == 'POST':
+        form = AdminForm(request.POST)
+        if form.is_valid():
+            admin = form.save(commit=False)
+            admin.admin_password = make_password(
+                form.cleaned_data['admin_password'])  # Hash password
+            admin.save()
+            # Redirect to login after successful registration
+            return redirect('login')
+    else:
+        form = AdminForm()
+
+    return render(request, 'register.html', {'form': form})
+
+
 def login(request):
     error = None
     if request.method == 'POST':
@@ -126,36 +143,30 @@ def login(request):
             request.session['user_type'] = user_type
             request.session.set_expiry(3600)
 
+            print("Session Data:", request.session.items())  # Debugging
+
             if user_type == 'admin':
                 return redirect('/')
             elif user_type == 'franchise':
                 return redirect('/franchise/dashboard/')
             elif user_type == 'staff':
-                return redirect(reverse('dashboard')) 
+                return redirect(reverse('dashboard'))
+
         else:
             error = "Invalid credentials"
 
     return render(request, 'login.html', {'error': error})
 
 
-def register(request):
-    if request.method == 'POST':
-        form = AdminForm(request.POST)
-        if form.is_valid():
-            admin = form.save(commit=False)
-            admin.admin_password = make_password(
-                form.cleaned_data['admin_password'])  # Hash password
-            admin.save()
-            # Redirect to login after successful registration
-            return redirect('login')
-    else:
-        form = AdminForm()
+def logout_view(request):  # Change function name
+    if 'user_id' in request.session:
+        del request.session['user_id']
+    if 'user_type' in request.session:
+        del request.session['user_type']
 
-    return render(request, 'register.html', {'form': form})
+    django_logout(request)  # Call Django’s actual logout function
+    request.session.flush()  # Ensure session is cleared
 
-
-def logout(request):
-    del request.session['user_id']
     return redirect('/')
 
 
@@ -193,14 +204,16 @@ def create_staff(request):
             return redirect('/')  # Redirect non-admin users
 
         if request.method == 'POST':
-            form = StaffModelForm(request.POST, request.FILES)  # Include files for uploads
+            # Include files for uploads
+            form = StaffModelForm(request.POST, request.FILES)
             if form.is_valid():
                 staff = form.save(commit=False)
                 staff.save()  # Save staff with all details
                 messages.success(request, "Staff member added successfully!")
                 return redirect('/')  # Redirect after successful creation
             else:
-                messages.error(request, "There was an error in the form. Please correct it.")
+                messages.error(
+                    request, "There was an error in the form. Please correct it.")
 
         else:
             form = StaffModelForm()
@@ -211,7 +224,6 @@ def create_staff(request):
         return redirect('/login')  # Handle case where admin doesn't exist
 
 
-
 def view_staffs(request, staff_id):
     user_id = request.session.get('user_id')
     if user_id is None:
@@ -220,7 +232,7 @@ def view_staffs(request, staff_id):
     try:
         admin = AdminModel.objects.get(admin_id=user_id)
         admin_name = f"{admin.admin_first_name} {admin.admin_last_name or ''}".strip()
-        
+
         # Fetch staff details
         staff_member = get_object_or_404(StaffModel, pk=staff_id)
 
@@ -231,7 +243,7 @@ def view_staffs(request, staff_id):
 
     except AdminModel.DoesNotExist:
         messages.error(request, "Admin not found. Please log in again.")
-        return redirect('/login') 
+        return redirect('/login')
 
 
 def list_staff(request):

@@ -2,43 +2,36 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.hashers import check_password
 from django.contrib import messages
 from datetime import datetime
-
+from django.utils import timezone
 from UserApp.models import *
 from UserApp.forms import *
+from django.contrib.auth.decorators import login_required
 
 # Admin can add franchises
-def admin_add_franchise(request):
-    if not request.user.is_superuser:
-        messages.error(request, "Only admins can add franchises.")
+@login_required
+def add_franchise(request):
+    # Check if the user is an admin or a staff member associated with a franchise
+    if not request.user.is_superuser and not request.user.is_staff:
+        messages.error(request, "Only admins or staff can add franchises.")
         return redirect("dashboard")
 
     if request.method == 'POST':
         form = FranchiseForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            franchise = form.save(commit=False)
+
+            # If the user is staff, associate the franchise with the current staff member
+            if request.user.is_staff:
+                franchise.staff = request.user.staffmodel  # Assuming `staffmodel` is a related field
+
+            franchise.save()
             messages.success(request, "Franchise added successfully.")
             return redirect("franchise_list")
     else:
         form = FranchiseForm()
 
-    return render(request, 'admin/add_franchise.html', {'form': form})
+    return render(request, 'add_franchise.html', {'form': form})
 
-# Franchise login
-def franchise_login(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        try:
-            franchise = Franchise.objects.get(email=email)
-            if check_password(password, franchise.password):
-                request.session['franchise_id'] = str(franchise.franchise_id)
-                messages.success(request, "Login successful.")
-                return redirect("franchise_dashboard")
-            else:
-                messages.error(request, "Invalid credentials.")
-        except Franchise.DoesNotExist:
-            messages.error(request, "Franchise not found.")
-    return render(request, 'franchise/login.html')
 
 # Franchise dashboard view
 def franchise_dashboard(request):
@@ -73,28 +66,41 @@ def franchise_logout(request):
     messages.success(request, "Logged out successfully.")
     return redirect("franchise_login")
 
-# Staff assignment upload (admin functionality)
+
 def staff_uploaded(request):
-    user = request.session.get('user', None)
-    if not user:
+    print("Session Data in staff_uploaded view:", request.session.items())  # Debugging session data
+
+    # Check if user is logged in and is an admin
+    user_type = request.session.get('user_type')
+    if user_type != 'admin':
+        print("User is not admin, redirecting to login")
+        return redirect('/login')  # Redirect to login if not an admin
+
+    user_id = request.session.get('user_id', None)
+    if user_id is None:
         return redirect('/login')
 
-    admin = get_object_or_404(AdminModel, admin_id=user)
+    # Assuming the admin object is related to 'user_id'
+    admin = get_object_or_404(AdminModel, admin_id=user_id)
     admin_name = f"{admin.admin_first_name} {admin.admin_last_name}" if admin.admin_last_name else admin.admin_first_name
 
+    # Your form and staff assignment logic
     if request.method == 'POST':
-        form = StaffForm(request.POST)
+        form = StaffAssignmentForm(request.POST)
         if form.is_valid():
             staff_assignment = form.save(commit=False)
-            staff_assignment.created_at = datetime.now()
-            staff_assignment.assigned_by = admin
+            staff_assignment.created_at = timezone.now()
+            staff_assignment.assigned_by = admin  # Set the admin assigning the staff
             staff_assignment.save()
+
             messages.success(request, "Staff assignment uploaded successfully.")
-            return redirect('/')  # Redirect to another page if necessary
+            return redirect('/')  # Redirect to a proper page (dashboard, etc.)
     else:
-        form = StaffForm()
+        form = StaffAssignmentForm()
 
     return render(request, 'assign_assignment.html', {'form': form, 'username': admin_name})
+
+
 
 # View all staff assignments (admin functionality)
 def all_assignments(request):
