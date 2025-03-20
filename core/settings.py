@@ -57,7 +57,9 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [
+            BASE_DIR / 'templates',  # Adjust the path as needed
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -69,6 +71,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
@@ -138,4 +141,14 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default session backen
 SESSION_COOKIE_AGE = 3600  # 1 hour session expiry
 SESSION_SAVE_EVERY_REQUEST = True  # Ensures session is refreshed on every request
   # Ensure the session does not expire when the browser is closed
+  
+  
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"  # Use your email provider's SMTP server
+EMAIL_PORT = 587  # Use 465 for SSL, 587 for TLS
+EMAIL_USE_TLS = True  # Use TLS for security
+EMAIL_HOST_USER = "malavika2bcomft@gmail.com"  # Your email address
+EMAIL_HOST_PASSWORD = "apai yxyj ixxi afzb"  # Use an app password for Gmail
+DEFAULT_FROM_EMAIL = "malavika2bcomft@gmail.com"
+
 

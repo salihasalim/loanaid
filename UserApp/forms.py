@@ -231,12 +231,7 @@ class ProfileUpdateForm(forms.ModelForm):
 
 class FranchiseForm(forms.ModelForm):
     confirm_password = forms.CharField(
-        widget=forms.PasswordInput(
-            attrs={
-                "class": "form-control form-control-user",
-                "placeholder": "Confirm Password",
-            }
-        ),
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm Password"}),
         required=True,
     )
 
@@ -245,89 +240,44 @@ class FranchiseForm(forms.ModelForm):
         fields = [
             "franchise_name",
             "franchise_owner",
+            "franchise_place",
             "email",
             "mobile_no",
             "password",
+            "confirm_password",
             "aadhar",
             "GST",
             "pan",
-            "photo",
+            "ac_no",
+            "ifsc_code",
         ]
         widgets = {
-            "franchise_name": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Franchise Name",
-                }
-            ),
-            "franchise_owner": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Franchise Owner",
-                }
-            ),
-            "email": forms.EmailInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Email Address",
-                }
-            ),
-            "mobile_no": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Mobile Number",
-                }
-            ),
-            "password": forms.PasswordInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Password",
-                }
-            ),
-            "aadhar": forms.FileInput(attrs={"class": "form-control"}),
-            "GST": forms.FileInput(attrs={"class": "form-control"}),
-            "pan": forms.FileInput(attrs={"class": "form-control"}),
-            "photo": forms.FileInput(attrs={"class": "form-control"}),
+            "ac_no": forms.TextInput(attrs={"class": "form-control", "placeholder": "Account Number"}),
+            "ifsc_code": forms.TextInput(attrs={"class": "form-control", "placeholder": "IFSC Code"}),
         }
 
-    def clean_email(self):
-        email = self.cleaned_data.get("email")
-        instance = getattr(self, "instance", None)
+    def clean_ac_no(self):
+        """ Validate Account Number (should be 9 to 18 digits). """
+        ac_no = self.cleaned_data.get("ac_no")
+        if not ac_no.isdigit() or not (9 <= len(ac_no) <= 18):
+            raise ValidationError("Account Number must be between 9 to 18 digits and contain only numbers.")
+        return ac_no
 
-        # Check if email already exists but exclude current instance if editing
-        if (
-            Franchise.objects.filter(email=email)
-            .exclude(pk=instance.pk if instance.pk else None)
-            .exists()
-        ):
-            raise ValidationError(
-                "A franchise with this email already exists.")
-        return email
-
-    def clean_mobile_no(self):
-        mobile = self.cleaned_data.get("mobile_no")
-        if mobile and (len(mobile) != 10 or not mobile.isdigit()):
-            raise ValidationError(
-                "Mobile Number must be exactly 10 digits and contain only numbers."
-            )
-        return mobile
-
-    def clean_password(self):
-        password = self.cleaned_data.get("password")
-        if password and len(password) < 8:
-            raise ValidationError(
-                "Password must be at least 8 characters long.")
-        return password  # Don't hash it here, it's handled in the model's save method
+    def clean_ifsc_code(self):
+        """ Validate IFSC Code (standard format: 4 letters, 0, 6 alphanumeric). """
+        ifsc_code = self.cleaned_data.get("ifsc_code")
+        if not ifsc_code or not RegexValidator(regex=r'^[A-Z]{4}0[A-Z0-9]{6}$')(ifsc_code):
+            raise ValidationError("Enter a valid IFSC code (e.g., HDFC0001234).")
+        return ifsc_code
 
     def clean(self):
+        """ Ensure passwords match. """
         cleaned_data = super().clean()
         password = cleaned_data.get("password")
         confirm_password = cleaned_data.get("confirm_password")
 
         if password and confirm_password and password != confirm_password:
             raise ValidationError("Passwords do not match.")
-
-        return cleaned_data
 
 
 class FranchiseWalletForm(forms.ModelForm):

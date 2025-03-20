@@ -5,9 +5,27 @@ from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from django.utils.timezone import now
 import uuid
-import random
-import string
 
+class UserModel(models.Model):
+    user_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100)
+    phone_number = models.CharField(
+        max_length=10,
+        unique=True,
+        validators=[RegexValidator(regex=r'^\d{10}$', message="Enter a valid 10-digit mobile number.")]
+    )
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if self.password and not self.password.startswith('pbkdf2_'):
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
 
 class AdminModel(models.Model):
     admin_id = models.AutoField(primary_key=True)
@@ -74,16 +92,13 @@ class StaffModel(models.Model):
 
 
 def generate_referral_code():
-    """Generate a random 8-character alphanumeric referral code"""
-    chars = string.ascii_uppercase + string.digits
-    return ''.join(random.choice(chars) for _ in range(8))
-
+    return str(uuid.uuid4().hex[:8]).upper()
 
 class Franchise(models.Model):
     franchise_id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False)
     staff = models.ForeignKey(
-        StaffModel, on_delete=models.CASCADE, null=True, blank=True)
+        'StaffModel', on_delete=models.CASCADE, null=True, blank=True)
     franchise_name = models.CharField(max_length=255)
     franchise_owner = models.CharField(max_length=255)
     franchise_place = models.CharField(
@@ -97,19 +112,30 @@ class Franchise(models.Model):
     password = models.CharField(max_length=128, null=True)
     referral_code = models.CharField(
         max_length=8, unique=True, default=generate_referral_code)
-    aadhar = models.FileField(upload_to='files/')
-    GST = models.FileField(upload_to='files/')
-    pan = models.FileField(upload_to='files/')
-    photo = models.FileField(upload_to='files/')
+    aadhar = models.CharField(max_length=50, blank=True, null=True)
+    GST = models.CharField(max_length=50, blank=True, null=True)
+    pan = models.CharField(max_length=50, blank=True, null=True)
+    ac_no = models.CharField(
+        max_length=20, 
+        validators=[RegexValidator(regex=r'^\d{9,18}$', message="Enter a valid account number.")], 
+        blank=True, null=True  # Remove default=True
+    )
+
+    ifsc_code = models.CharField(
+        max_length=11, 
+        validators=[RegexValidator(regex=r'^[A-Z]{4}0[A-Z0-9]{6}$', message="Enter a valid IFSC code.")], 
+        blank=True, null=True  # Remove default=True
+    )
+
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        # Hash password only if it's not already hashed
         if self.password and not self.password.startswith('pbkdf2_'):
-            self.password = make_password(self.password)
+            self.password = make_password(self.password)  # Hash the password
         super().save(*args, **kwargs)
+
 
     def __str__(self):
         return self.franchise_name

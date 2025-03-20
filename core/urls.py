@@ -23,8 +23,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('UserApp.urls')),  # User-related URLs
     path('loan/', include('loan.urls')),  # Loan-related URLs
-    path('franchise/', include('franchise.urls')),  # Staff-related URLs  # Dashboard-related URLs
-    path('dashboard/', include('dashboard.urls')),  # Staff-related URLs  # Dashboard-related URLs
+    path('franchise/', include('franchise.urls')),  # Franchise-related URLs
+    path('dashboard/', include('dashboard.urls')),  # Dashboard-related URLs
+
+    # # Add Django's built-in authentication views
+    # path('accounts/', include('django.contrib.auth.urls')),  # 🔥 This enables login/logout views
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:

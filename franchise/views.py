@@ -6,27 +6,46 @@ from django.utils import timezone
 from UserApp.models import *
 from UserApp.forms import *
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 
-# Admin can add franchises
-@login_required
 def add_franchise(request):
-    # Check if the user is an admin or a staff member associated with a franchise
-    if not request.user.is_superuser and not request.user.is_staff:
-        messages.error(request, "Only admins or staff can add franchises.")
-        return redirect("dashboard")
+    # Check if user is logged in via session
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
+
+    if not user_id or user_type not in ['admin', 'staff']:
+        messages.error(request, "Unauthorized access. Please log in.")
+        return redirect('/login/')
 
     if request.method == 'POST':
         form = FranchiseForm(request.POST, request.FILES)
         if form.is_valid():
             franchise = form.save(commit=False)
+            plain_password = request.POST.get('password')
 
-            # If the user is staff, associate the franchise with the current staff member
-            if request.user.is_staff:
-                franchise.staff = request.user.staffmodel  # Assuming `staffmodel` is a related field
+            # If logged-in user is staff, set the staff relation
+            if user_type == 'staff':
+                try:
+                    staff = StaffModel.objects.get(pk=user_id)
+                    franchise.staff = staff
+                except StaffModel.DoesNotExist:
+                    messages.error(request, "Staff user not found.")
+                    return redirect('/login/')
 
             franchise.save()
-            messages.success(request, "Franchise added successfully.")
-            return redirect("franchise_list")
+
+            # Send email with franchise details
+            send_mail(
+                "Franchise Account Created",
+                f"Hello {franchise.franchise_owner},\n\nYour franchise account has been created successfully!\n\nUsername: {franchise.email}\nPassword: {plain_password}\nReferral Code: {franchise.referral_code}\n\nPlease log in and update your password immediately.",
+                "admin@yourdomain.com",
+                [franchise.email],
+                fail_silently=False,
+            )
+
+            messages.success(request, "Franchise added successfully and credentials sent via email.")
+            return redirect("list_franchise")
+
     else:
         form = FranchiseForm()
 
