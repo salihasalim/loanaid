@@ -217,30 +217,46 @@ def update_status(request, form_id):
     return redirect('/')
 
 
+from django.http import JsonResponse
+
 def addloan(request):
-    user_id = request.session.get('user_id', None)
-    if user_id is None:
-        return redirect('/login')
-    else:
+    # Check if user is logged in via session
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
+
+    if not user_id or user_type != 'admin':
+        return JsonResponse({"error": "Unauthorized access"}, status=403)
+
+    try:
         admin = AdminModel.objects.get(admin_id=user_id)
-        if admin.admin_last_name:
-            admin_name = f"{admin.admin_first_name} {admin.admin_last_name}"
-        else:
-            admin_name = f"{admin.admin_first_name}"
-        all_loans = LoanModel.objects.all()
-        if request.method == 'POST':
-            form = LoanForm(request.POST)
-            if form.is_valid():
-                form.save()  # Save new loan
-                return redirect('/')
-        else:
-            form = LoanForm()
-        return render(request, 'add-loan.html', {
-            'username': admin_name,
-            'admin': admin,
-            'form': form,
-            'allloans': all_loans
-        })
+    except AdminModel.DoesNotExist:
+        return JsonResponse({"error": "Admin not found"}, status=403)
+
+    # Construct admin name
+    admin_name = f"{admin.admin_first_name} {admin.admin_last_name}" if admin.admin_last_name else admin.admin_first_name
+
+    if request.method == 'POST':
+        form = LoanForm(request.POST)
+        if form.is_valid():
+            loan = form.save()
+            return JsonResponse({
+                "success": True,
+                "loan_id": loan.loan_id,
+                "loan_name": loan.loan_name
+            })  # Return new loan details as JSON
+
+        return JsonResponse({"error": form.errors}, status=400)
+
+    all_loans = LoanModel.objects.all()
+    form = LoanForm()
+
+    return render(request, 'add-loan.html', {
+        'username': admin_name,
+        'admin': admin,
+        'form': form,
+        'allloans': all_loans
+    })
+
 
 
 def addstatus(request):

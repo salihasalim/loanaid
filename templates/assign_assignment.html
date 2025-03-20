@@ -29,7 +29,7 @@
                         <div class="form-group row">
                             <label for="admin_name" class="col-sm-2 col-form-label">Assigned by</label>
                             <div class="col-sm-10">
-                                <input type="text" id="admin_name" name="admin_name" value="{{ username }}" class="form-control" disabled>
+                                <input type="text" id="admin_name" name="admin_name" value="{{ username }}" class="form-control" disabled style="background-color: #f8f9fc; border: 1px solid #d1d3e2; padding: 10px; border-radius: 5px;">
                             </div>
                         </div>
 
@@ -90,21 +90,6 @@
                             </div>
                         </div>
 
-                        <!-- Assign To Field -->
-                        <div class="form-group row">
-                            <label for="{{ form.assign_to.id_for_label }}" class="col-sm-2 col-form-label">Assign To</label>
-                            <div class="col-sm-10">
-                                {{ form.assign_to }}
-                                {% if form.assign_to.errors %}
-                                    <div class="text-danger">
-                                        {% for error in form.assign_to.errors %}
-                                            <p>{{ error }}</p>
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
                         <button type="submit" class="btn btn-primary btn-user btn-block d-block mx-auto">Assign Staff</button>
                     </form>
                 </div>
@@ -142,6 +127,37 @@
         });
     });
 </script>
+
+<style>
+    .logo {
+        height: 2.5rem;
+        width: 8rem;
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
+    .btn-block {
+        width: 50% !important;
+    }
+    hr {
+        border-top: 1px solid rgb(0 0 0 / 40%) !important;
+    }
+    .form-select {
+        font-size: 0.8rem !important;
+    }
+    .col-form-label {
+        color: #004647;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+    /* Apply consistent styling to all form fields */
+    .form-control {
+        background-color: #f8f9fc;
+        border: 1px solid #d1d3e2;
+        padding: 10px;
+        border-radius: 5px;
+    }
+</style>
 
 </body>
 </html>

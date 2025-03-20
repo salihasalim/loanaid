@@ -225,39 +225,39 @@ class StaffAssignmentModel(models.Model):
     staff_name = models.ForeignKey(
         StaffModel, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_to'
     )
+    staff_full_name = models.CharField(max_length=255, blank=True, null=True)
 
     # Franchise Information
     franchise_name = models.ForeignKey(
         Franchise, on_delete=models.SET_NULL, null=True, blank=True, related_name='assignments'
     )
-    franchise_mobile_no = models.CharField(
-        max_length=10, blank=True, null=True)
-    franchise_place = models.CharField(
-        max_length=255, blank=True, null=True)  # Make it nullable
+    franchise_mobile_no = models.CharField(max_length=10, blank=True, null=True)
+    franchise_place = models.CharField(max_length=255, blank=True, null=True)
 
     assigned_by = models.ForeignKey(
         StaffModel, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_by'
     )
 
     def __str__(self):
-        return f"Assignment {self.assignment_id} - {self.staff_name}"
+        return f"Assignment {self.assignment_id} - {self.staff_full_name}"
 
     def save(self, *args, **kwargs):
-        # Set the staff name based on the assigned staff member
+        # Store full name of the staff in a separate field
         if self.staff_name:
-            self.staff_name = f"{self.staff_name.first_name} {self.staff_name.last_name or ''}".strip(
-            )
+            self.staff_full_name = f"{self.staff_name.first_name} {self.staff_name.last_name or ''}".strip()
 
-        # Fetch franchise details when franchise_name is provided
+        # Fetch franchise details if available
         if self.franchise_name:
             self.franchise_mobile_no = self.franchise_name.mobile_no
             self.franchise_place = self.franchise_name.place
         else:
-            # Handle case when franchise is not found (optional)
             self.franchise_mobile_no = None
             self.franchise_place = None
 
         super().save(*args, **kwargs)
+
+
+
 
 
 class LoanApplicationModel(models.Model):

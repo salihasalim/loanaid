@@ -559,59 +559,40 @@ class BankForm(forms.ModelForm):
         }
 
 
+from django import forms
+from django.core.exceptions import ValidationError
+
 class StaffAssignmentForm(forms.ModelForm):
     class Meta:
         model = StaffAssignmentModel
-        fields = [
-            "staff_name",
-            "franchise_name",
-            "franchise_mobile_no",
-            "franchise_place",
-            "assigned_by",  # Add this if needed in the form
-            # If 'assign_to' is a necessary field, include it here as well
-        ]
+        fields = ["staff_name", "franchise_name", "franchise_mobile_no", "franchise_place", "assigned_by"]
         widgets = {
             "staff_name": forms.Select(attrs={"class": "form-select form-control"}),
-            "franchise_name": forms.Select(
-                attrs={"class": "form-control form-control-user", "placeholder": "Select Franchise"}
-            ),
-            "franchise_mobile_no": forms.TextInput(
-                attrs={"class": "form-control form-control-user", "placeholder": "Franchise Mobile No."}
-            ),
-            "franchise_place": forms.TextInput(
-                attrs={"class": "form-control form-control-user", "placeholder": "Franchise Place"}
-            ),
+            "franchise_name": forms.Select(attrs={"class": "form-control", "placeholder": "Select Franchise"}),
+            "franchise_mobile_no": forms.TextInput(attrs={"class": "form-control", "placeholder": "Franchise Mobile No."}),
+            "franchise_place": forms.TextInput(attrs={"class": "form-control", "placeholder": "Franchise Place"}),
         }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
-        super(StaffAssignmentForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-        # Set the assigned_by field based on who is creating the assignment
         if user and isinstance(user, StaffModel):
             self.instance.assigned_by = user
 
-        # If 'assign_to' field exists, set the queryset for it
-        if 'assign_to' in self.fields:
-            self.fields["assign_to"].queryset = StaffModel.objects.filter(is_active=True)
-
-        # Dynamically update the franchise fields
         if self.instance.franchise_name:
             self.fields['franchise_mobile_no'].initial = self.instance.franchise_name.mobile_no
             self.fields['franchise_place'].initial = self.instance.franchise_name.place
 
-        # Disable the fields initially until franchise is selected
         self.fields['franchise_mobile_no'].widget.attrs['disabled'] = 'disabled'
         self.fields['franchise_place'].widget.attrs['disabled'] = 'disabled'
-
 
     def clean_franchise_mobile_no(self):
         mobile = self.cleaned_data.get("franchise_mobile_no")
         if mobile and (len(mobile) != 10 or not mobile.isdigit()):
-            raise ValidationError(
-                "Franchise Mobile Number must be exactly 10 digits and contain only numbers."
-            )
+            raise ValidationError("Franchise Mobile Number must be exactly 10 digits.")
         return mobile
+
 
 
 class UploadedFileForm(forms.ModelForm):

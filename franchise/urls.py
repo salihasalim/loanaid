@@ -16,4 +16,5 @@ urlpatterns = [
     path('franchise_edit/', views.franchise_edit, name='franchise_edit'),
     path('franchise_logout/', views.franchise_logout, name='franchise_logout'),
     path('add_franchise/', views.add_franchise, name='add_franchise'),
+    path('list_franchise/', views.list_franchise, name='list_franchise'),
 ]

@@ -13,3 +13,4 @@ urlpatterns = [
     path('delete_staff/<int:staff_id>/', views.delete_staff, name='delete_staff'),
     path('delete-file/<int:id>/', views.delete_files, name='delete_file'),
 ]
+   

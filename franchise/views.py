@@ -51,6 +51,23 @@ def add_franchise(request):
 
     return render(request, 'add_franchise.html', {'form': form})
 
+def list_franchise(request):
+    # Check if user is logged in via session
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
+
+    if not user_id or user_type not in ['admin', 'staff']:
+        messages.error(request, "Unauthorized access. Please log in.")
+        return redirect('/login/')
+
+    # Fetch franchises based on user type
+    if user_type == 'admin':
+        franchises = Franchise.objects.all()
+    else:  # If staff, show only their assigned franchises
+        franchises = Franchise.objects.filter(staff_id=user_id)
+
+    return render(request, 'list_franchise.html', {'franchises': franchises})
+
 
 # Franchise dashboard view
 def franchise_dashboard(request):
