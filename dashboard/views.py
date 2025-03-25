@@ -16,34 +16,6 @@ from django.shortcuts import render, redirect
 from django.core.exceptions import ObjectDoesNotExist
 
 
-def dashboard(request):
-    # Retrieve the correct session data
-    user_id = request.session.get('user_id')  # Match the key from login session
-    user_type = request.session.get('user_type')
-
-    if user_id is None or user_type != 'staff':  
-        print("Unauthorized access attempt, redirecting to login.")  
-        return redirect('/login')  
-
-    try:
-        user = StaffModel.objects.get(pk=user_id)  # Use `pk` (not `staff_id` unless that's your primary key)
-    except StaffModel.DoesNotExist:
-        print(f"Staff with ID {user_id} does not exist.")  
-        return redirect('/login')
-
-    # Fetch all loans and franchises (only accessible by staff)
-    all_loans = LoanApplicationModel.objects.all()
-    all_franchises = Franchise.objects.all()
-
-    context = {
-        'user': user,
-        'username': f"{user.first_name} {user.last_name}" if user.last_name else user.first_name,
-        'all_loans': all_loans,
-        'all_franchises': all_franchises,
-    }
-
-    return render(request, 'dashboard.html', context)
-
 
 
 def get_loan_data(request):

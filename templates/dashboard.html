@@ -3,92 +3,90 @@
 {% block content %}
 
 <div class="container-fluid">
-    <!-- Page Heading -->
-    <div class="mb-4">
-        <div class="row mb-5">
-            {% comment %} <div class="d-flex flex-column justify-content-center align-items-center icon-box">
-                <i class="fas fa-user" style="color:#004647;"></i>
-            </div> {% endcomment %}
-            <div style="text-transform: uppercase;">
-                Welcome {{ username }}!
-            </div>
-        </div>
-        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    </div>
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800"> Dashboard</h1>
+  </div>
 
-    <!-- All Loans Section -->
-    <div class="row">
-        <div class="col-xl-12 col-lg-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">All Loans</h6>
-                </div>
-                <div class="card-body">
-                    {% if all_loans %}
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Loan ID</th>
-                                    <th>Applicant Name</th>
-                                    <th>Phone Number</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for loan in all_loans %}
-                                <tr>
-                                    <td>{{ loan.id }}</td>
-                                    <td>{{ loan.applicant_name }}</td>
-                                    <td>{{ loan.phone_no }}</td>
-                                    <td>{{ loan.status_name.status_name }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <p>No loan applications available.</p>
-                    {% endif %}
-                </div>
+  <div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card bg-gradient-secondary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row justify-content-center no-gutters align-items-center">
+            <div class="col-lg-2 mr-3">
+              <div class="d-flex flex-column justify-content-center align-items-center icon-box">
+                <i class="fas fa-user fa-2x" style="color:#8eaed7"></i>
+              </div>
             </div>
+            <div class="col-lg-9 text-white d-flex flex-column justify-content-center align-items-center" style="text-transform: uppercase">
+              Welcome {{ username }}
+            </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 
-    <!-- All Franchises Section -->
-    <div class="row">
-        <div class="col-xl-12 col-lg-12">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">All Franchises</h6>
-                </div>
-                <div class="card-body">
-                    {% if all_franchises %}
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Franchise ID</th>
-                                    <th>Name</th>
-                                    <th>Owner</th>
-                                    <th>Phone Number</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for franchise in all_franchises %}
-                                <tr>
-                                    <td>{{ franchise.franchise_id }}</td>
-                                    <td>{{ franchise.franchise_name }}</td>
-                                    <td>{{ franchise.owner_name }}</td>
-                                    <td>{{ franchise.mobile_no }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        <p>No franchises available.</p>
-                    {% endif %}
-                </div>
-            </div>
+  <div class="row">
+    <div class="col-lg-12 mb-4">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Franchise List</h6>
         </div>
+        <div class="card-body">
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Franchise ID</th>
+                <th scope="col">Name</th>
+                <th scope="col">Location</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for franchise in franchises %}
+              <tr>
+                <td>{{ franchise.id }}</td>
+                <td>{{ franchise.name }}</td>
+                <td>{{ franchise.location }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-12 mb-4">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Loan List</h6>
+        </div>
+        <div class="card-body">
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th scope="col">Loan ID</th>
+                <th scope="col">Applicant</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for loan in loans %}
+              <tr>
+                <td>{{ loan.id }}</td>
+                <td>{{ loan.applicant_name }}</td>
+                <td>{{ loan.amount }}</td>
+                <td>{{ loan.status }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 {% endblock %}

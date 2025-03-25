@@ -22,6 +22,7 @@ def home(request):
         return redirect('/login')
 
     user_type = request.session.get('user_type', None)
+    
     if user_type == 'admin':
         admin = AdminModel.objects.get(admin_id=user_id)
         admin_name = f"{admin.admin_first_name} {admin.admin_last_name if admin.admin_last_name else ''}"
@@ -32,8 +33,7 @@ def home(request):
         accepted_loans_count = accepted_loans.count()
 
         today = datetime.now().date()
-        all_loans = LoanApplicationModel.objects.filter(
-            followup_date=today, workstatus='Accept')
+        all_loans = LoanApplicationModel.objects.filter(followup_date=today, workstatus='Accept')
         loan_followup = all_loans.filter(assigned_to=user_id)
 
         all_staff = StaffModel.objects.all()
@@ -67,21 +67,35 @@ def home(request):
                 'admin': admin,
                 'login_success': login_success
             }
+        return render(request, 'index.html', context)
 
     elif user_type == 'staff':
-        staff = StaffModel.objects.get(staff_id=user_id)
-        admin_name = f"{staff.first_name} {staff.last_name if staff.last_name else ''}"
-        profile_completed = staff.profile_completed
+        try:
+            staff = StaffModel.objects.get(staff_id=user_id)
+        except StaffModel.DoesNotExist:
+            return redirect('/login')
 
-        if not profile_completed:
-            return redirect('/staff/profile/update')
+        admin_name = f"{staff.first_name} {staff.last_name if staff.last_name else ''}"
+        
+        if not staff.profile_completed:
+            return redirect('profile_update')
+
+        all_loans = LoanApplicationModel.objects.all()
+        all_franchises = Franchise.objects.all()
+        franchise_count = all_franchises.count()
 
         context = {
             'username': admin_name,
             'admin': staff,
+            'all_loans': all_loans,
+            'all_franchises': all_franchises,
+            'franchise_count': franchise_count,
         }
 
-    return render(request, 'index.html', context)
+        return render(request, 'dashboard.html', context)
+
+
+    return redirect('/login')
 
 
 def register(request):
@@ -143,19 +157,18 @@ def login(request):
             request.session['user_type'] = user_type
             request.session.set_expiry(3600)
 
-            print("Session Data:", request.session.items())  # Debugging
-
             if user_type == 'admin':
                 return redirect('/')
             elif user_type == 'franchise':
-                return redirect('/franchise/dashboard/')
-            elif user_type == 'staff':
-                return redirect(reverse('dashboard'))
+                return redirect('')
+            else:
+                return redirect('/dashboard')
 
         else:
             error = "Invalid credentials"
 
     return render(request, 'login.html', {'error': error})
+
 
 
 def logout_view(request):  # Change function name
@@ -176,21 +189,19 @@ def update_profile(request):
         return redirect('/login')
 
     staff = StaffModel.objects.get(staff_id=user_id)
+
     if request.method == 'POST':
-        form = ProfileUpdateForm(
-            request.POST, request.FILES, instance=staff.profileupdate)
+        form = ProfileUpdateForm(request.POST, request.FILES, instance=staff)  # Use staff directly
         if form.is_valid():
-            profile = form.save(commit=False)
-            profile.staff = staff
-            profile.save()
+            form.save()
             staff.profile_completed = True  # Mark the profile as completed
             staff.save()
             return redirect('/')
-
     else:
-        form = ProfileUpdateForm(instance=staff.profileupdate)
+        form = ProfileUpdateForm(instance=staff)  # Use staff directly
 
     return render(request, 'profile_update.html', {'form': form, 'username': f"{staff.first_name} {staff.last_name}"})
+
 
 
 def create_staff(request):

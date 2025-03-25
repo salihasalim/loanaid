@@ -14,8 +14,7 @@
                 <div class="card-body">
                     <form class="p-5 user" method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
-                        
-                        <h6 class="m-0 font-weight-bold text-primary">Personal Information</h6>
+                    
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label">First Name</label>
                             <div class="col-sm-10">{{ form.first_name }}</div>
@@ -33,7 +32,6 @@
                             <div class="col-sm-10">{{ form.phone_no }}</div>
                         </div>
                         
-                        <h6 class="m-0 font-weight-bold text-primary">Loan Details</h6>
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label">Type of Loan</label>
                             <div class="col-sm-10">{{ form.loan_name }}</div>
@@ -43,7 +41,7 @@
                             <div class="col-sm-10">{{ form.loan_amount }}</div>
                         </div>
                         
-                        <h6 class="m-0 font-weight-bold text-primary">Guarantor Information</h6>
+                        
                         <div class="form-group row">
                             <label class="col-sm-2 col-form-label">Guarantor Name</label>
                             <div class="col-sm-10">{{ form.guaranter_name }}</div>
