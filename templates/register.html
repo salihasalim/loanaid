@@ -2503,67 +2503,64 @@
                   <h1 class="h4 text-white mb-4">Create an Account!</h1>
                 </div>
                 <form class="user" method="POST">
-                  {% csrf_token %} {% if form.non_field_errors %}
+                  {% csrf_token %}
+                  
+                  {% if form.non_field_errors %}
                   <div class="text-danger">{{ form.non_field_errors }}</div>
                   {% endif %}
-                  <div class="form-group row">
-                    <div class="col-sm-6 mb-3 mb-sm-0">
-                      {{ form.user_first_name }} {% if
-                      form.user_first_name.errors %}
-                      <span class="small text-warning"
-                        >{{ form.user_first_name.errors }}</span
-                      >
-                      {% endif %}
-                    </div>
-                    <div class="col-sm-6">
-                      {{ form.user_last_name }} {% if form.user_last_name.errors
-                      %}
-                      <span class="small text-warning"
-                        >{{ form.user_last_name.errors }}</span
-                      >
-                      {% endif %}
-                    </div>
-                  </div>
+                  
                   <div class="form-group">
-                    {{ form.user_phoneno }} {% if form.user_phoneno.errors %}
-                    <span class="small text-warning"
-                      >{{ form.user_phoneno.errors }}</span
-                    >
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <span class="small text-warning">{{ form.name.errors }}</span>
                     {% endif %}
                   </div>
+                  
+                  <div class="form-group">
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}
+                    <span class="small text-warning">{{ form.phone_number.errors }}</span>
+                    {% endif %}
+                  </div>
+                  
+                  <div class="form-group">
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <span class="small text-warning">{{ form.email.errors }}</span>
+                    {% endif %}
+                  </div>
+                  
                   <div class="form-group row">
                     <div class="col-sm-6 mb-3 mb-sm-0">
-                      {{ form.user_password }} {% if form.user_password.errors
-                      %}
-                      <span class="small text-warning"
-                        >{{ form.user_password.errors }}</span
-                      >
+                      {{ form.password }}
+                      {% if form.password.errors %}
+                      <span class="small text-warning">{{ form.password.errors }}</span>
                       {% endif %}
                     </div>
                     <div class="col-sm-6">
-                      {{ form.repeat_password }} {% if
-                      form.repeat_password.errors %}
-                      <span class="small text-warning"
-                        >{{ form.repeat_password.errors }}</span
-                      >
+                      {{ form.confirm_password }}
+                      {% if form.confirm_password.errors %}
+                      <span class="small text-warning">{{ form.confirm_password.errors }}</span>
                       {% endif %}
                     </div>
                   </div>
+                  
                   <input
                     type="submit"
                     class="btn btn-primary btn-user btn-block"
-                    value=" Register Account"
+                    value="Register Account"
                   />
                 </form>
                 <hr />
-
+            
                 <div class="text-center">
-                  <a class="small text-white" href="{% url 'login' %}"
-                    >Already have an account? Login!</a
-                  >
+                  <a class="small text-white" href="{% url 'login' %}">
+                    Already have an account? Login!
+                  </a>
                 </div>
               </div>
             </div>
+            
           </div>
         </div>
       </div>

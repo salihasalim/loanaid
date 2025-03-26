@@ -3,10 +3,12 @@ from UserApp import views
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('index/<int:user_id>', views.other_user_dashboard, name='index'),
     path('login/', views.login, name='login'),
     path('register/', views.register, name='register'),
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.home, name='dashboard'),
+    path('franchise_dashboard/', views.home, name='franchise_dashboard'),
     path('update-profile/', views.update_profile, name='update_profile'),
     path('view_profile/<int:staff_id>', views.view_staffs, name = 'view_profile'),
     path('create-user/', views.create_staff, name='create_staff'),

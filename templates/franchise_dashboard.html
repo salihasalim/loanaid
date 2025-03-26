@@ -1,0 +1,155 @@
+{% extends 'includes/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container-fluid">
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+  </div>
+
+  <!-- Content Row -->
+  <div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card bg-gradient-secondary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row justify-content-center no-gutters align-items-center">
+            <div class="col-lg-2 mr-3">
+              <div class="d-flex flex-column justify-content-center align-items-center icon-box">
+                <i class="fas fa-user fa-2x" style="color:#8eaed7"></i>
+              </div>
+            </div>
+            <div class="col-lg-9 text-white d-flex flex-column justify-content-center align-items-center" style="text-transform: uppercase">
+              Welcome {{ username }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% for franchise in franchise_wallets %}
+<div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card-body">
+            <div class="row no-gutters align-items-center">
+                <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                        Wallet
+                    </div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        ₹{{ franchise.wallet_balance }}
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <i class="fas fa-rupee-sign fa-2x text-gray-300"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+    <!-- Loans Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                Loans
+              </div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800">
+                {{ loan_count }}
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="fas fa-rupee-sign fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+ 
+
+  <!-- Loan List -->
+  <div class="row">
+    <div class="col-lg-12 mb-4">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Loan List</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive-xxl">
+              <div style="overflow-x: auto; max-width: 100%">
+                  <table class="table table-bordered table-hover all-users">
+                      <thead>
+                          <tr>
+                              <th scope="col">Sr No</th>
+                              <th scope="col">First Name</th>
+                              <th scope="col">Last Name</th>
+                              <th scope="col">District</th>
+                              <th scope="col">Place</th>
+                              <th scope="col">Phone Number</th>
+                              <th scope="col">Loan Name</th>
+                              <th scope="col">Amount</th>
+                              <th scope="col">FollowUp Date</th>
+                              <th scope="col">Description</th>
+                              <th scope="col">Status</th>
+                              <th scope="col">Application Description</th>
+                              <th scope="col">Bank</th>
+                              <th scope="col">Executive Name</th>
+                              <th scope="col">Mobile No 1</th>
+                              <th scope="col">Actions</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {% for form in related_loans %}
+                          <tr>
+                              <th scope="row">{{ forloop.counter }}</th>
+                              <td>{{ form.first_name }}</td>
+                              <td>{{ form.last_name }}</td>
+                              <td>{{ form.district }}</td>
+                              <td>{{ form.place }}</td>
+                              <td>{{ form.phone_no }}</td>
+                              <td>{{ form.loan_name }}</td>
+                              <td>{{ form.loan_amount }}</td>
+                              <td>{{ form.followup_date }}</td>
+                              <td>{{ form.description }}</td>
+                              <td>{{ form.status_name }}</td>
+                              <td>{{ form.application_description }}</td>
+                              <td>{{ form.bank_name }}</td>
+                              <td>{{ form.executive_name }}</td>
+                              <td>
+                                  {{ form.mobileno_1 }}<br />
+                                  {% if form.mobileno_2 %} {{ form.mobileno_2 }} {% endif %}
+                              </td>
+                              <td>
+                                  <a href="{% url 'loan-page' form.form_id %}">Check this</a>
+                              </td>
+                          </tr>
+                          {% endfor %}
+                      </tbody>
+                  </table>
+                  {% if not admin.is_superadmin %}
+                  <!-- Pagination Controls -->
+                  <div class="pagination" style="text-align: right">
+                      <button class="prev btn btn-primary" onclick="changePage(-1)">
+                          &#10094; Prev
+                      </button>
+                      <span id="page-info"></span>
+                      <button class="next btn btn-primary" onclick="changePage(1)">
+                          Next &#10095;
+                      </button>
+                  </div>
+                  {% endif %}
+              </div>
+          </div>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

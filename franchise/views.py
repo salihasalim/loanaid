@@ -50,7 +50,8 @@ def add_franchise(request):
                 fail_silently=False,
             )
 
-            messages.success(request, "Franchise added successfully and credentials sent via email.")
+            messages.success(
+                request, "Franchise added successfully and credentials sent via email.")
             return redirect("list_franchise")
         else:
             # If the form is invalid, return the form again with errors
@@ -74,15 +75,26 @@ def list_franchise(request):
         return redirect("/login/")
 
     # Fetch franchises based on user type
-    if user_type == "admin":
-        franchises = Franchise.objects.all()
-    else:  # If staff, show only their assigned franchises
-        franchises = Franchise.objects.filter(staff_id=user_id)
+    if user_type in ["admin", "staff"]:
+        franchises = Franchise.objects.all()  # Both admin and staff can see all franchises
 
     return render(request, "list_franchise.html", {"franchises": franchises})
 
+def delete_franchise(request, franchise_id):
+    # Check authorization
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
 
-# Franchise dashboard view
+    if not user_id or user_type != 'admin':
+        messages.error(request, "Unauthorized access.")
+        return redirect('/login/')
+
+    franchise = get_object_or_404(Franchise, id=franchise_id)
+    franchise.delete()
+    messages.success(request, "Franchise deleted successfully.")
+    return redirect('list_franchise')
+
+
 def franchise_dashboard(request):
     franchise_id = request.session.get("franchise_id")
     if not franchise_id:
@@ -92,25 +104,34 @@ def franchise_dashboard(request):
     return render(request, "franchise/dashboard.html", {"franchise": franchise})
 
 
-# Edit franchise profile
-
-
-def franchise_edit(request):
-    franchise_id = request.session.get("franchise_id")
-    if not franchise_id:
-        return redirect("franchise_login")
-
+def edit_franchise(request, franchise_id):
     franchise = get_object_or_404(Franchise, franchise_id=franchise_id)
-    if request.method == "POST":
+
+    if request.method == 'POST':
         form = FranchiseForm(request.POST, request.FILES, instance=franchise)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Profile updated successfully.")
-            return redirect("franchise_dashboard")
+            franchise = form.save(commit=False)
+
+            # Ensure password is not rehashed if unchanged
+            plain_password = request.POST.get('password')
+            if plain_password and plain_password != franchise.password:
+                franchise.password = make_password(plain_password)
+
+            franchise.save()
+            messages.success(request, "Franchise updated successfully.")
+            return redirect("list_franchise")
+
+        else:
+            messages.error(request, "Please correct the errors in the form.")
+
     else:
+        # Pre-fill password field
+        franchise.password = franchise.password  # Keeps existing password
         form = FranchiseForm(instance=franchise)
 
-    return render(request, "franchise/edit_profile.html", {"form": form})
+    return render(request, 'add_franchise.html', {'form': form, 'franchise': franchise, 'is_edit': True})
+
+
 
 
 # Franchise logout
@@ -154,13 +175,15 @@ def staff_uploaded(request):
             staff_assignment.assigned_by = admin  # Set the admin assigning the staff
             staff_assignment.save()
 
-            messages.success(request, "Staff assignment uploaded successfully.")
+            messages.success(
+                request, "Staff assignment uploaded successfully.")
             return redirect("/")  # Redirect to a proper page (dashboard, etc.)
     else:
         form = StaffAssignmentForm()
 
     return render(
-        request, "assign_assignment.html", {"form": form, "username": admin_name}
+        request, "assign_assignment.html", {
+            "form": form, "username": admin_name}
     )
 
 
@@ -203,9 +226,11 @@ def update_assignment(request, assignment_id):
     if request.method == "POST":
         assigned_to_id = request.POST.get("assigned_to")
         try:
-            assignment = StaffAssignmentModel.objects.get(assignment_id=assignment_id)
+            assignment = StaffAssignmentModel.objects.get(
+                assignment_id=assignment_id)
             if assigned_to_id:
-                assignment.assign_to = AdminModel.objects.get(admin_id=assigned_to_id)
+                assignment.assign_to = AdminModel.objects.get(
+                    admin_id=assigned_to_id)
             else:
                 assignment.assign_to = None
             assignment.save()

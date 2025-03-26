@@ -27,6 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# In your settings.py
+SECURE_REDIRECT_EXEMPT = ['upi://']
+
+
 
 # Application definition
 

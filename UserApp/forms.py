@@ -1,8 +1,71 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth import authenticate
 
 from .models import *
+
+
+class UserForm(forms.ModelForm):
+    confirm_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control form-control-user',
+            'placeholder': 'Confirm Password'
+        }), required=False
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control form-control-user',
+            'placeholder': 'Password'
+        })
+    )
+
+    class Meta:
+        model = UserModel
+        fields = ['name', 'phone_number', 'email', 'password']
+
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control form-control-user',
+                'placeholder': 'Full Name'
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control form-control-user',
+                'placeholder': 'Phone Number'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control form-control-user',
+                'placeholder': 'Email Address'
+            }),
+            'password': forms.PasswordInput(attrs={
+                'class': 'form-control form-control-user',
+                'placeholder': 'Password'
+            }),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get('password')
+        confirm_password = cleaned_data.get('confirm_password')
+
+        # If confirm_password is filled in (registration), check if passwords match
+        if confirm_password and password != confirm_password:
+            raise ValidationError("Passwords do not match.")
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if commit:
+            # Hash the password before saving if it's a registration
+            user.password = make_password(user.password)
+            user.save()
+        return user
+
+    def authenticate_user(self):
+        """ Custom method to handle login authentication """
+        email = self.cleaned_data['email']
+        password = self.cleaned_data['password']
+        return authenticate(email=email, password=password)
 
 
 class AdminForm(forms.ModelForm):
@@ -114,6 +177,7 @@ class StaffModelForm(forms.ModelForm):
             "phone_no",
             "password",
             "is_active",
+            "is_staff",
         ]
         widgets = {
             "first_name": forms.TextInput(
@@ -147,6 +211,7 @@ class StaffModelForm(forms.ModelForm):
                 }
             ),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "is_staff": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -249,6 +314,10 @@ class FranchiseForm(forms.ModelForm):
             "pan",
             "ac_no",
             "ifsc_code",
+            "wallet_balance",
+            "payment_status",
+            "is_franchise",
+
         ]
         widgets = {
             "franchise_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Franchise Name"}),
@@ -263,6 +332,9 @@ class FranchiseForm(forms.ModelForm):
             "pan": forms.TextInput(attrs={"class": "form-control", "placeholder": "PAN Number"}),
             "ac_no": forms.TextInput(attrs={"class": "form-control", "placeholder": "Account Number"}),
             "ifsc_code": forms.TextInput(attrs={"class": "form-control", "placeholder": "IFSC Code"}),
+            "wallet_balance": forms.TextInput(attrs={"class": "form-control", "placeholder": "Wallet Balance"}),
+            "payment_status": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "is_franchise": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
     def clean_ac_no(self):
@@ -276,9 +348,21 @@ class FranchiseForm(forms.ModelForm):
     def clean_ifsc_code(self):
         """ Validate IFSC Code (standard format: 4 letters, 0, 6 alphanumeric). """
         ifsc_code = self.cleaned_data.get("ifsc_code")
-        if not ifsc_code or not RegexValidator(regex=r'^[A-Z]{4}0[A-Z0-9]{6}$')(ifsc_code):
+
+        # Check if IFSC code is empty
+        if not ifsc_code:
+            raise ValidationError("IFSC code is required.")
+
+        # Remove any whitespace
+        ifsc_code = ifsc_code.strip().upper()
+
+        import re
+        ifsc_pattern = r'^[A-Z]{4}0[A-Z0-9]{6}$'
+
+        if not re.match(ifsc_pattern, ifsc_code):
             raise ValidationError(
                 "Enter a valid IFSC code (e.g., HDFC0001234).")
+
         return ifsc_code
 
     def clean(self):
@@ -291,75 +375,24 @@ class FranchiseForm(forms.ModelForm):
             raise ValidationError("Passwords do not match.")
 
 
-
-class FranchiseWalletForm(forms.ModelForm):
-    class Meta:
-        model = FranchiseWallet
-        fields = ["franchise", "balance"]
-        widgets = {
-            "franchise": forms.Select(attrs={"class": "form-select form-control"}),
-            "balance": forms.NumberInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Wallet Balance",
-                }
-            ),
-        }
-
-
-class WalletTransactionForm(forms.ModelForm):
-    class Meta:
-        model = WalletTransaction
-        fields = ["wallet", "amount", "transaction_type", "description"]
-        widgets = {
-            "wallet": forms.Select(attrs={"class": "form-select form-control"}),
-            "amount": forms.NumberInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Amount",
-                }
-            ),
-            "transaction_type": forms.Select(
-                attrs={"class": "form-select form-control"}
-            ),
-            "description": forms.Textarea(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Transaction Description",
-                    "rows": 3,
-                }
-            ),
-        }
-
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user", None)
-        super(WalletTransactionForm, self).__init__(*args, **kwargs)
-
-        # If a user is provided, set the appropriate processed_by field
-        if user:
-            if isinstance(user, AdminModel):
-                self.instance.processed_by_admin = user
-            elif isinstance(user, StaffModel):
-                self.instance.processed_by_staff = user
-
-
-
 class LoanApplicationForm(forms.ModelForm):
-    franchise_referral = forms.CharField(
-        required=False,
-        widget=forms.TextInput(
-            attrs={
-                "class": "form-control form-control-user",
-                "placeholder": "Franchise Referral Code",
-            }
-        ),
+    franchise_mobile_no = forms.CharField(
+        widget=forms.TextInput(attrs={
+                               "class": "form-control", "placeholder": "Franchise Mobile No.", "disabled": "disabled"}),
+        required=False
+    )
+    franchise_place = forms.CharField(
+        widget=forms.TextInput(attrs={
+                               "class": "form-control", "placeholder": "Franchise Place", "disabled": "disabled"}),
+        required=False
     )
 
     class Meta:
         model = LoanApplicationModel
         fields = [
             "franchise",
-            "franchise_referral",
+            "franchise_mobile_no",
+            "franchise_place",
             "first_name",
             "last_name",
             "district",
@@ -376,6 +409,7 @@ class LoanApplicationForm(forms.ModelForm):
             "cibil_score",
             "cibil_issue",
             "it_payable",
+            'loan_name',
             "loan_amount",
             "followup_date",
             "description",
@@ -386,236 +420,85 @@ class LoanApplicationForm(forms.ModelForm):
             "mobileno_1",
             "mobileno_2",
             "document_description",
-            "workstatus",
         ]
         widgets = {
-            "franchise": forms.Select(
-                attrs={"class": "form-select form-control"}
-            ),
-            "first_name": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "First Name",
-                }
-            ),
-            "last_name": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Last Name",
-                }
-            ),
-            "district": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "District",
-                }
-            ),
-            "place": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Place",
-                }
-            ),
-            "phone_no": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Phone Number",
-                }
-            ),
-            "guaranter_name": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Guarantor Name",
-                }
-            ),
-            "guaranter_phoneno": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Guarantor Phone Number",
-                }
-            ),
-            "guaranter_job": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Guarantor Job",
-                }
-            ),
-            "guaranter_cibil_score": forms.NumberInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Guarantor CIBIL Score",
-                }
-            ),
-            "guaranter_cibil_issue": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Guarantor CIBIL Issue",
-                }
-            ),
-            "guaranter_it_payable": forms.NumberInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Guarantor IT Payable",
-                }
-            ),
-            "guaranter_years": forms.NumberInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Guarantor Years",
-                }
-            ),
-            "job": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Job",
-                }
-            ),
-            "cibil_score": forms.NumberInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "CIBIL Score",
-                }
-            ),
-            "cibil_issue": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "CIBIL Issue",
-                }
-            ),
-            "it_payable": forms.NumberInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "IT Payable",
-                }
-            ),
-            "loan_amount": forms.NumberInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Loan Amount",
-                }
-            ),
-            "followup_date": forms.DateInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Follow-up Date",
-                    "type": "date",
-                }
-            ),
-            "description": forms.Textarea(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Description",
-                    "rows": 3,
-                }
-            ),
-            "status_name": forms.ModelChoiceField(
-                queryset=StatusModel.objects.all(),
-                empty_label="Select Status",
-                required=False,  # Ensure this is handled here
-                widget=forms.Select(attrs={"class": "form-select form-control"})
-            ),
-            "application_description": forms.Textarea(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Application Description",
-                    "rows": 3,
-                }
-            ),
-            "bank_name": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Bank Name",
-                }
-            ),
-            "executive_name": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Executive Name",
-                }
-            ),
-            "mobileno_1": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Mobile Number 1",
-                }
-            ),
-            "mobileno_2": forms.TextInput(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Mobile Number 2",
-                }
-            ),
-            "document_description": forms.Textarea(
-                attrs={
-                    "class": "form-control form-control-user",
-                    "placeholder": "Document Description",
-                    "rows": 3,
-                }
-            ),
-            "workstatus": forms.Select(
-                attrs={"class": "form-select form-control", "required": False}
-            ),
+            "franchise": forms.Select(attrs={"class": "form-select form-control"}),
+            "first_name": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "First Name"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "Last Name"}),
+            "district": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "District"}),
+            "place": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "Place"}),
+            "phone_no": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "Phone Number"}),
+            "guaranter_name": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "Guarantor Name"}),
+            "guaranter_phoneno": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "Guarantor Phone Number"}),
+            "guaranter_job": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "Guarantor Job"}),
+            "guaranter_cibil_score": forms.NumberInput(attrs={"class": "form-control form-control-user", "placeholder": "Guarantor CIBIL Score"}),
+            "guaranter_cibil_issue": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "Guarantor CIBIL Issue"}),
+            "guaranter_it_payable": forms.NumberInput(attrs={"class": "form-control form-control-user", "placeholder": "Guarantor IT Payable"}),
+            "guaranter_years": forms.NumberInput(attrs={"class": "form-control form-control-user", "placeholder": "Guarantor Years"}),
+            "job": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "Job"}),
+            "cibil_score": forms.NumberInput(attrs={"class": "form-control form-control-user", "placeholder": "CIBIL Score"}),
+            "cibil_issue": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "CIBIL Issue"}),
+            "it_payable": forms.NumberInput(attrs={"class": "form-control form-control-user", "placeholder": "IT Payable"}),
+            'loan_name': forms.Select(attrs={'class': 'form-select form-control', 'required': False}),
+            "loan_amount": forms.NumberInput(attrs={"class": "form-control form-control-user", "placeholder": "Loan Amount"}),
+            "followup_date": forms.DateInput(attrs={"class": "form-control form-control-user", "placeholder": "Follow-up Date", "type": "date"}),
+            "description": forms.Textarea(attrs={"class": "form-control form-control-user", "placeholder": "Description", "rows": 3}),
+            "status_name": forms.Select(attrs={"class": "form-select form-control"}),
+            "application_description": forms.Textarea(attrs={"class": "form-control form-control-user", "placeholder": "Application Description", "rows": 3}),
+            "bank_name": forms.Select(attrs={"class": "form-select form-control"}),
+            "executive_name": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "Executive Name"}),
+            "mobileno_1": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "Mobile Number 1"}),
+            "mobileno_2": forms.TextInput(attrs={"class": "form-control form-control-user", "placeholder": "Mobile Number 2"}),
+            "document_description": forms.Textarea(attrs={"class": "form-control form-control-user", "placeholder": "Document Description", "rows": 3}),
         }
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
-        super(LoanApplicationForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-        # Make franchise_referral not required if direct franchise selection is used
-        self.fields["franchise"].required = False
+        # Ensure franchise dropdown is populated
+        self.fields['franchise'].queryset = Franchise.objects.all()
 
-        # Disable fields based on user type (if not superadmin)
-        non_editable_fields = [
-            "first_name",
-            "last_name",
-            "district",
-            "place",
-            "phone_no",
-            "loan_amount",
-            "bank_name",
-            "executive_name",
-            "mobileno_1",
-            "mobileno_2",
-            "franchise",
-            "franchise_referral",
-        ]
-        if user and hasattr(user, "is_superadmin") and not user.is_superadmin:
-            for field in non_editable_fields:
-                if field in self.fields:
-                    self.fields[field].disabled = True
+        if self.instance.franchise:
+            self.fields['franchise_mobile_no'].initial = self.instance.franchise.mobile_no
+            self.fields['franchise_place'].initial = self.instance.franchise.franchise_place
 
-    def clean_phone_no(self):
-        phone_no = self.cleaned_data.get("phone_no")
-        if phone_no and len(phone_no) != 10:
-            raise ValidationError("Phone number must be exactly 10 digits.")
-        return phone_no
-
-    def clean_mobileno_1(self):
-        mobileno_1 = self.cleaned_data.get("mobileno_1")
-        if mobileno_1 and len(mobileno_1) != 10:
-            raise ValidationError("Mobile number must be exactly 10 digits.")
-        return mobileno_1
-
-    def clean_mobileno_2(self):
-        mobileno_2 = self.cleaned_data.get("mobileno_2")
-        if mobileno_2 and len(mobileno_2) != 10:
-            raise ValidationError("Mobile number must be exactly 10 digits.")
-        return mobileno_2
-
-    def clean_franchise_referral(self):
-        referral = self.cleaned_data.get("franchise_referral")
-        franchise = self.cleaned_data.get("franchise")
-
-        if franchise:
-            return None
-
-        if referral and not Franchise.objects.filter(referral_code=referral).exists():
-            raise ValidationError("Invalid franchise referral code.")
-
-        return referral
+        self.fields['franchise_mobile_no'].widget.attrs['disabled'] = 'disabled'
+        self.fields['franchise_place'].widget.attrs['disabled'] = 'disabled'
 
 
+class StaffAssignmentForm(forms.ModelForm):
+    class Meta:
+        model = StaffAssignmentModel
+        fields = ["staff_name", "franchise_name",
+                  "franchise_mobile_no", "franchise_place", "assigned_by"]
+        widgets = {
+            "staff_name": forms.Select(attrs={"class": "form-select form-control"}),
+            "franchise_name": forms.Select(attrs={"class": "form-control", "placeholder": "Select Franchise"}),
+            "franchise_mobile_no": forms.TextInput(attrs={"class": "form-control", "placeholder": "Franchise Mobile No."}),
+            "franchise_place": forms.TextInput(attrs={"class": "form-control", "placeholder": "Franchise Place"}),
+        }
 
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+        if user and isinstance(user, StaffModel):
+            self.instance.assigned_by = user
+
+        if self.instance.franchise_name:
+            self.fields['franchise_mobile_no'].initial = self.instance.franchise_name.mobile_no
+            self.fields['franchise_place'].initial = self.instance.franchise_name.place
+
+        self.fields['franchise_mobile_no'].widget.attrs['disabled'] = 'disabled'
+        self.fields['franchise_place'].widget.attrs['disabled'] = 'disabled'
+
+    def clean_franchise_mobile_no(self):
+        mobile = self.cleaned_data.get("franchise_mobile_no")
+        if mobile and (len(mobile) != 10 or not mobile.isdigit()):
+            raise ValidationError(
+                "Franchise Mobile Number must be exactly 10 digits.")
+        return mobile
 
 
 class LoanForm(forms.ModelForm):
@@ -675,39 +558,14 @@ class BankForm(forms.ModelForm):
             )
         }
 
+    def clean_bank_name(self):
+        bank_name = self.cleaned_data['bank_name'].strip()
 
-class StaffAssignmentForm(forms.ModelForm):
-    class Meta:
-        model = StaffAssignmentModel
-        fields = ["staff_name", "franchise_name",
-                  "franchise_mobile_no", "franchise_place", "assigned_by"]
-        widgets = {
-            "staff_name": forms.Select(attrs={"class": "form-select form-control"}),
-            "franchise_name": forms.Select(attrs={"class": "form-control", "placeholder": "Select Franchise"}),
-            "franchise_mobile_no": forms.TextInput(attrs={"class": "form-control", "placeholder": "Franchise Mobile No."}),
-            "franchise_place": forms.TextInput(attrs={"class": "form-control", "placeholder": "Franchise Place"}),
-        }
+        # Check if bank name already exists (case-insensitive)
+        if BankModel.objects.filter(bank_name__iexact=bank_name).exists():
+            raise ValidationError("A bank with this name already exists.")
 
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user", None)
-        super().__init__(*args, **kwargs)
-
-        if user and isinstance(user, StaffModel):
-            self.instance.assigned_by = user
-
-        if self.instance.franchise_name:
-            self.fields['franchise_mobile_no'].initial = self.instance.franchise_name.mobile_no
-            self.fields['franchise_place'].initial = self.instance.franchise_name.place
-
-        self.fields['franchise_mobile_no'].widget.attrs['disabled'] = 'disabled'
-        self.fields['franchise_place'].widget.attrs['disabled'] = 'disabled'
-
-    def clean_franchise_mobile_no(self):
-        mobile = self.cleaned_data.get("franchise_mobile_no")
-        if mobile and (len(mobile) != 10 or not mobile.isdigit()):
-            raise ValidationError(
-                "Franchise Mobile Number must be exactly 10 digits.")
-        return mobile
+        return bank_name
 
 
 class UploadedFileForm(forms.ModelForm):

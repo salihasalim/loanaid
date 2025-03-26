@@ -54,10 +54,10 @@
                         <div
                           class="text-xs font-weight-bold text-primary text-uppercase mb-1"
                         >
-                          Users
+                        Franchises
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
-                          {{total_users_count}}
+                          {{total_franchise_count}}
                         </div>
                       </div>
                       <div class="col-auto">
@@ -184,7 +184,7 @@
               </div>
 
               <!-- Notifications -->
-              <div class="col-xl-3 col-lg-5">
+              {% comment %} <div class="col-xl-3 col-lg-5">
                 <div class="card shadow mb-4">
                   <!-- Card Header - Dropdown -->
                   <div
@@ -219,7 +219,7 @@
                   </div>
                 </div>
               </div>
-            </div>
+            </div> {% endcomment %}
 
             <!-- Content Row -->
             <div class="row">
@@ -250,18 +250,12 @@
                               <th scope="col">Description</th>
                               <th scope="col">Status</th>
                               <th scope="col">Application Description</th>
-                              {% if admin.is_superadmin %}
                               <th scope="col">Bank</th>
 
                               <th scope="col">Executive Name</th>
                               <th scope="col">Mobile No 1</th>
-
-                              <th scope="col">Assigned to</th>
-                              {% endif %}
                               <th scope="col">Actions</th>
-                              {% if admin.is_superadmin %}
-                              <th scope="col">User Status</th>
-                              {% endif %}
+                              
                             </tr>
                           </thead>
                           <tbody>
@@ -280,7 +274,6 @@
 
                               <td>{{form.status_name}}</td>
                               <td>{{form.application_description}}</td>
-                              {% if admin.is_superadmin %}
                               <td>{{form.bank_name}}</td>
                               <td>{{form.executive_name}}</td>
                               <td>
@@ -289,57 +282,15 @@
                                 {% endif %}
                               </td>
 
-                              <td>
-                                <ul>
-                                  {% for member in form.assigned_to.all %}
-                                  <li>{{ member.admin_first_name }}</li>
-                                  {% empty %}
-                                  <li>No members</li>
-                                  {% endfor %}
-                                </ul>
-                              </td>
+                            
 
-                              {% endif %}
                               <td>
                                 <a href="{% url 'loan-page' form.form_id %}"
                                   >Check this</a
                                 >
                               </td>
-                              {% if admin.is_superadmin %}
-                              <td>
-                                {% if form.workstatus == "Accept" %}
-                                <span
-                                  style="
-                                    color: white;
-                                    background-color: green;
-                                    border-radius: 20px;
-                                    padding: 5px;
-                                  "
-                                  >{{ form.workstatus }}</span
-                                >
-                                {% elif form.workstatus == "Reject" %}
-                                <span
-                                  style="
-                                    color: white;
-                                    background-color: red;
-                                    border-radius: 20px;
-                                    padding: 5px;
-                                  "
-                                  >{{ form.workstatus }}</span
-                                >
-                                {% else %}
-                                <span
-                                  style="
-                                    color: white;
-                                    background-color: grey;
-                                    border-radius: 20px;
-                                    padding: 5px;
-                                  "
-                                  >{{ form.workstatus }}</span
-                                >
-                                {% endif %}
-                              </td>
-                              {% endif %}
+                              
+                              
                             </tr>
                             {% endfor %}
                           </tbody>

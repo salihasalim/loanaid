@@ -33,14 +33,23 @@
                                 <div class="card-body">
                                     <form class="p-5 user" method="POST">
                                         {% csrf_token %}
+                                        {% if form.non_field_errors %}
+                                            <div class="alert alert-danger">
+                                                {{ form.non_field_errors }}
+                                            </div>
+                                        {% endif %}
                                         <div class="form-group row">
                                             <label for="bank_name" class="col-sm-2 col-form-label">Bank Name</label>
                                             <div class="col-sm-10">
-
-                                                {{form.bank_name}}
+                                                {{ form.bank_name }}
+                                                {% if form.bank_name.errors %}
+                                                    <div class="text-danger">
+                                                        {{ form.bank_name.errors }}
+                                                    </div>
+                                                {% endif %}
                                             </div>
                                         </div>
-
+                                    
                                         <input type="submit" class="btn btn-primary btn-user btn-block d-block mx-auto" value="SUBMIT">
                                     </form>
                                 </div>

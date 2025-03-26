@@ -51,7 +51,8 @@ class AdminModel(models.Model):
     admin_password = models.CharField(max_length=128)
     is_superadmin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)  # Manually set default here
+    created_at = models.DateTimeField(
+        auto_now_add=True)  # Manually set default here
     last_login = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
@@ -78,6 +79,7 @@ class StaffModel(models.Model):
     )
     password = models.CharField(max_length=128, null=True)
     is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
     # To track if staff completed the profile
@@ -118,6 +120,8 @@ class Franchise(models.Model):
     franchise_place = models.CharField(
         max_length=255, blank=True, null=True, default="Not Provided"
     )
+    is_franchise = models.BooleanField(default=False)
+    payment_status = models.BooleanField(default=False)
     email = models.EmailField(unique=True)
     mobile_no = models.CharField(
         max_length=10,
@@ -137,7 +141,8 @@ class Franchise(models.Model):
     ac_no = models.CharField(
         max_length=20,
         validators=[
-            RegexValidator(regex=r"^\d{9,18}$", message="Enter a valid account number.")
+            RegexValidator(regex=r"^\d{9,18}$",
+                           message="Enter a valid account number.")
         ],
         blank=True,
         null=True,  # Remove default=True
@@ -153,6 +158,9 @@ class Franchise(models.Model):
         blank=True,
         null=True,  # Remove default=True
     )
+    wallet_balance = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00
+    )
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -167,46 +175,7 @@ class Franchise(models.Model):
         return self.franchise_name
 
 
-class FranchiseWallet(models.Model):
-    wallet_id = models.AutoField(primary_key=True)
-    franchise = models.OneToOneField(
-        Franchise, on_delete=models.CASCADE, related_name="wallet"
-    )
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.franchise.franchise_name} - ₹{self.balance}"
-
-
-class WalletTransaction(models.Model):
-    CREDIT = "CREDIT"
-    DEBIT = "DEBIT"
-
-    TRANSACTION_TYPES = [
-        (CREDIT, "Credit"),
-        (DEBIT, "Debit"),
-    ]
-
-    transaction_id = models.AutoField(primary_key=True)
-    wallet = models.ForeignKey(
-        FranchiseWallet, on_delete=models.CASCADE, related_name="transactions"
-    )
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
-    description = models.TextField(null=True, blank=True)
-    # Track who made this transaction (admin or staff)
-    processed_by_admin = models.ForeignKey(
-        AdminModel, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    processed_by_staff = models.ForeignKey(
-        StaffModel, on_delete=models.SET_NULL, null=True, blank=True
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.transaction_type}: ₹{self.amount} - {self.wallet.franchise.franchise_name}"
 
 
 class LoanModel(models.Model):
@@ -221,7 +190,7 @@ class LoanModel(models.Model):
 
 class BankModel(models.Model):
     bank_id = models.AutoField(primary_key=True)
-    bank_name = models.CharField(max_length=100)
+    bank_name = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -250,14 +219,11 @@ class StaffAssignmentModel(models.Model):
     staff_full_name = models.CharField(max_length=255, blank=True, null=True)
 
     # Franchise Information
-    franchise_name = models.ForeignKey(
-        Franchise,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="assignments",
-    )
-    franchise_mobile_no = models.CharField(max_length=10, blank=True, null=True)
+    franchise_name = models.ForeignKey(Franchise, on_delete=models.CASCADE, related_name='staff_assignments',null=True,  # Allow NULL values
+    blank=True)
+
+    franchise_mobile_no = models.CharField(
+        max_length=10, blank=True, null=True)
     franchise_place = models.CharField(max_length=255, blank=True, null=True)
 
     assigned_by = models.ForeignKey(
@@ -274,7 +240,8 @@ class StaffAssignmentModel(models.Model):
     def save(self, *args, **kwargs):
         # Store full name of the staff in a separate field
         if self.staff_name:
-            self.staff_full_name = f"{self.staff_name.first_name} {self.staff_name.last_name or ''}".strip()
+            self.staff_full_name = f"{self.staff_name.first_name} {self.staff_name.last_name or ''}".strip(
+            )
 
         # Fetch franchise details if available
         if self.franchise_name:
@@ -318,7 +285,8 @@ class LoanApplicationModel(models.Model):
     guaranter_name = models.CharField(max_length=100, null=True, blank=True)
     guaranter_phoneno = models.CharField(max_length=50, null=True, blank=True)
     guaranter_job = models.CharField(max_length=100, null=True, blank=True)
-    guaranter_cibil_score = models.CharField(max_length=50, null=True, blank=True)
+    guaranter_cibil_score = models.CharField(
+        max_length=50, null=True, blank=True)
     guaranter_cibil_issue = models.TextField(null=True, blank=True)
     guaranter_it_payable = models.BooleanField(default=False)
     guaranter_years = models.IntegerField(null=True, blank=True)
@@ -329,25 +297,36 @@ class LoanApplicationModel(models.Model):
     it_payable = models.BooleanField(default=False)
     years = models.IntegerField(null=True, blank=True)
 
-    loan_name = models.ForeignKey(LoanModel, on_delete=models.SET_NULL, null=True, blank=True)
-    loan_amount = models.DecimalField(max_digits=10,default=0, decimal_places=2, null=True, blank=True)
-    followup_date = models.DateField(null = True)
+    loan_name = models.ForeignKey(
+        LoanModel, on_delete=models.SET_NULL, null=True, blank=True)
+    loan_amount = models.DecimalField(
+        max_digits=10, default=0, decimal_places=2, null=True, blank=True)
+    followup_date = models.DateField(null=True)
     description = models.TextField(null=True, blank=True)
-    status_name = models.ForeignKey(StatusModel, on_delete=models.SET_NULL, null=True, blank=True)
+    status_name = models.ForeignKey(
+        StatusModel, on_delete=models.SET_NULL, null=True, blank=True)
     application_description = models.TextField(null=True, blank=True)
-    bank_name = models.ForeignKey(BankModel, on_delete=models.SET_NULL, null=True, blank=True)
+    bank_name = models.ForeignKey(
+        BankModel, on_delete=models.SET_NULL, null=True, blank=True)
 
     executive_name = models.CharField(max_length=100, null=True, blank=True)
-    mobileno_1 = models.CharField(max_length=15,null=True, blank=True)
+    mobileno_1 = models.CharField(max_length=15, null=True, blank=True)
     mobileno_2 = models.CharField(max_length=15, blank=True, null=True)
-    franchise = models.ForeignKey(Franchise,on_delete=models.SET_NULL, null=True, blank=True)
-    document_description = models.TextField(null=True, blank=True)
-    workstatus = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default=NOT_SELECTED,  # Set default value to "Not selected"
-        null=True,
+    assigned_to = models.ForeignKey(
+        StaffModel, on_delete=models.SET_NULL, null=True, blank=True)
+    franchise = models.ForeignKey(
+    Franchise, 
+    on_delete=models.CASCADE, 
+    related_name='loan_applications', 
+    null=True,  # Allow NULL values
+    blank=True  # Allow blank values in forms
     )
+
+
+    document_description = models.TextField(null=True, blank=True)
+    
+    
+
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.loan_name}"
 
