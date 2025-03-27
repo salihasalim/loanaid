@@ -1,0 +1,73 @@
+
+
+<<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Required</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <div style="text-align: center; padding: 50px;">
+        <h2>Payment Required</h2>
+        <p>Please complete your payment to access the dashboard.</p>
+        <p>UPI ID: {{ upi_id }}</p>
+        
+        <button onclick="tryUPIRedirect()">Pay Now</button>
+        
+        <script>
+            var upiLinks = JSON.parse('{{ upi_links|safe }}');
+            
+            function tryUPIRedirect() {
+                upiLinks.forEach(function(link) {
+                    try {
+                        window.location.href = link;
+                        return false;  // Exit loop after first successful redirect
+                    } catch (error) {
+                        console.log("Failed to redirect with link: " + link);
+                    }
+                });
+                
+                setTimeout(function() {
+                    alert("Please open your UPI app manually");
+                }, 2000);
+            }
+            
+            // Auto-attempt redirect on page load
+            window.onload = tryUPIRedirect;
+        </script>
+    </div>
+</body>
+</html>
+
+{% comment %} <div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3>Payment Required</h3>
+        </div>
+        <div class="card-body">
+            <h4>Franchise Membership Payment</h4>
+            <p>Please complete your payment to activate your franchise account.</p>
+            
+            <div class="payment-details">
+                <p><strong>UPI ID:</strong> {{ upi_id }}</p>
+                <p><strong>Amount:</strong> ₹{{ payment_amount }}</p>
+                <p><strong>Payment Note:</strong> {{ payment_note }}</p>
+            </div>
+
+            <div class="payment-instructions">
+                <h5>Payment Instructions:</h5>
+                <ol>
+                    <li>Open your UPI app (Google Pay, PhonePe, etc.)</li>
+                    <li>Scan the QR code or enter the UPI ID: {{ upi_id }}</li>
+                    <li>Enter the amount: ₹{{ payment_amount }}</li>
+                    <li>Complete the payment</li>
+                </ol>
+            </div>
+
+            <form method="post" action="{% url 'payment_confirmation' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">I have completed the payment</button>
+            </form>
+        </div>
+    </div>
+</div> {% endcomment %}

@@ -235,7 +235,7 @@
         >
           <div
             class="logo"
-            style="background-image: url({% static  'img/Loan Aid.png' %})"
+            style="background-image: url({% static 'img/Loan Aid.png' %})"
           ></div>
         </a>
 
@@ -248,8 +248,20 @@
             <span>Dashboard</span></a
           >
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'form' %}">
+            <i class="fas fa-fw fa-file"></i>
+            <span>Application</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'all-application' %}">
+            <i class="fas fa-list-alt"></i>
+            <span>All Applications</span>
+          </a>
 
         <!-- Admin-specific items -->
+        {% if admin.is_superadmin  %}
         <li class="nav-item">
           <a class="nav-link" href="{% url 'form' %}">
             <i class="fas fa-fw fa-file"></i>
@@ -262,7 +274,6 @@
             <span>All Applications</span>
           </a>
         </li>
-        {% if admin.is_superadmin %}
         <li class="nav-item">
           <a class="nav-link" href="{% url 'create_staff' %}">
             <i class="fas fa-fw fa-user-plus"></i>
@@ -281,41 +292,81 @@
             <span>Staff Assignment</span>
           </a>
         </li>
-        {% endif %} 
-        {% if admin.is_superadmin or user.is_staff %}
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'addbank' %}">
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'addbank' %}">
             <i class="fas fa-university"></i>
             <span>Add Bank</span>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'add_franchise' %}">
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'add_franchise' %}">
             <i class="fas fa-building"></i>
             <span>Add Franchise</span>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'list_franchise' %}">
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'list_franchise' %}">
             <i class="fas fa-building"></i>
             <span>List Franchise</span>
-        </a>
-    </li>
-
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'addloan' %}">
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'addloan' %}">
             <i class="fas fa-file-invoice-dollar"></i>
             <span>Add Loan</span>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'addstatus' %}">
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'addstatus' %}">
             <i class="fas fa-edit"></i>
             <span>Add Status</span>
-        </a>
-    </li>
-{% endif %}
-
+          </a>
+        </li>
+        {% endif %}
+        {% if admin.is_staff %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'form' %}">
+            <i class="fas fa-fw fa-file"></i>
+            <span>Application</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'all-application' %}">
+            <i class="fas fa-list-alt"></i>
+            <span>All Applications</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'addbank' %}">
+            <i class="fas fa-university"></i>
+            <span>Add Bank</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'add_franchise' %}">
+            <i class="fas fa-building"></i>
+            <span>Add Franchise</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'list_franchise' %}">
+            <i class="fas fa-building"></i>
+            <span>List Franchise</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'addloan' %}">
+            <i class="fas fa-file-invoice-dollar"></i>
+            <span>Add Loan</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'addstatus' %}">
+            <i class="fas fa-edit"></i>
+            <span>Add Status</span>
+          </a>
+        </li>
+        {% endif %}
 
         <hr class="sidebar-divider d-none d-md-block" />
         <!-- Sidebar Toggler (Sidebar) -->

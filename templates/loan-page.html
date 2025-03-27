@@ -262,7 +262,10 @@
                                             </div>
                                         </div>
                                         
-                                        <input type="submit" name="submit-form" class="btn btn-primary btn-user btn-block d-block mx-auto" value="SUBMIT">
+                                        {% if request.user.is_authenticated and request.user.is_admin or request.user.is_staff or request.user.is_franchise %}
+                                            <input type="submit" name="submit-form" class="btn btn-primary btn-user btn-block d-block mx-auto" value="SUBMIT">
+                                        {% endif %}
+
                                         
                                     </form>
                                     <div class="pt-2 pl-5 pr-5 pm-5">

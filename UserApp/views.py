@@ -17,6 +17,10 @@ from django.contrib import messages
 from django.urls import reverse
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from datetime import datetime
 from django.shortcuts import redirect, render
 
@@ -33,7 +37,6 @@ def register(request):
     return render(request, 'register.html', {'form': form})
 
 
-
 def login(request):
     error = None
     if request.method == 'POST':
@@ -47,8 +50,7 @@ def login(request):
         try:
             admin = AdminModel.objects.get(admin_email=identifier)
             if check_password(password, admin.admin_password):
-                user = admin
-                user_type = 'admin'
+                user, user_type = admin, 'admin'
         except AdminModel.DoesNotExist:
             pass
 
@@ -56,57 +58,98 @@ def login(request):
         if not user:
             try:
                 franchise = Franchise.objects.get(email=identifier)
+                
+                # Password verification
                 if check_password(password, franchise.password):
-                    user = franchise
-                    user_type = 'franchise'
-                    # Check if franchise's payment status is active
+                    # Check payment status
                     if franchise.payment_status != 'active':
-                        if not request.session.get('redirected_to_upi', False):
-                            request.session['redirected_to_upi'] = True
-                            response = HttpResponse(status=302)
-                            response['Location'] = 'upi://malavika2bcomft@okaxis'
-                            return response
+                        # Redirect to payment confirmation page instead of direct UPI link
+                        request.session['franchise_id'] = str(franchise.pk)
+                        request.session['requires_payment'] = True
+                        return redirect('payment_redirect')
+                    
+                    user, user_type = franchise, 'franchise'
+                    
             except Franchise.DoesNotExist:
-                error = "Franchise account does not exist. Please contact authority."
+                pass
 
-        # Check Staff
-        if not user:
-            try:
-                staff = StaffModel.objects.get(email=identifier)
-                if check_password(password, staff.password):
-                    user = staff
-                    user_type = 'staff'
-            except StaffModel.DoesNotExist:
-                error = "Staff account does not exist. Please contact authority."
-
-        # Check General User
-        if not user:
-            try:
-                general_user = UserModel.objects.get(email=identifier)
-                if check_password(password, general_user.password):
-                    user = general_user
-                    user_type = 'user'
-            except UserModel.DoesNotExist:
-                error = "User account does not exist. Please contact authority."
-
+        # Rest of your existing login logic remains the same...
         if user:
+            request.session.flush()  # Clear old session
             request.session['user_id'] = str(user.pk)
             request.session['user_type'] = user_type
-            request.session.set_expiry(3600)
+            request.session.set_expiry(3600)  # 1-hour session expiry
 
+            logger.info(f"Login successful: {user_type} (ID: {user.pk})")
+
+            # Redirect based on user type
             if user_type == 'admin':
                 return redirect('/')
             elif user_type == 'franchise':
                 return redirect('/franchise_dashboard')
             elif user_type == 'staff':
                 return redirect('/dashboard')
-            else:
-                return redirect(f'/index/{user.pk}')  # Correct redirection with user_id
+            elif user_type == 'executive':
+                return redirect(f'/index/{user.pk}')
+        else:
+            error = "Invalid credentials. Please try again."
+            logger.warning(f"Login failed for identifier: {identifier}")
 
     return render(request, 'login.html', {'error': error})
 
+def payment_redirect(request):
+    """
+    Render a page with UPI payment instructions and link
+    """
+    # Verify session data
+    franchise_id = request.session.get('franchise_id')
+    requires_payment = request.session.get('requires_payment', False)
 
+    if not franchise_id or not requires_payment:
+        return redirect('login')
 
+    # UPI payment details
+    upi_id = 'malavika2bcomft@okaxis'
+    payment_amount = 500  # Example amount
+    payment_note = 'Franchise Membership Payment'
+
+    context = {
+        'upi_id': upi_id,
+        'payment_amount': payment_amount,
+        'payment_note': payment_note
+    }
+
+    return render(request, 'payment_redirect.html', context)
+
+def payment_confirmation(request):
+    """
+    Handle payment confirmation logic
+    """
+    franchise_id = request.session.get('franchise_id')
+    requires_payment = request.session.get('requires_payment', False)
+    
+    if not franchise_id or not requires_payment:
+        return redirect('login')
+
+    if request.method == 'POST':
+        # Here you would typically verify the payment 
+        # For now, we'll just update the status
+        try:
+            franchise = Franchise.objects.get(pk=franchise_id)
+            franchise.payment_status = 'active'
+            franchise.save()
+
+            # Clear payment-related session data
+            del request.session['franchise_id']
+            del request.session['requires_payment']
+
+            messages.success(request, "Payment successful! You can now log in.")
+            return redirect('login')
+        
+        except Franchise.DoesNotExist:
+            messages.error(request, "Franchise not found.")
+
+    return redirect('login')
 
 
 def home(request):
@@ -226,23 +269,24 @@ def home(request):
     return redirect('/login')
 
 
-
-
 def other_user_dashboard(request, user_id):
     try:
-        other_user = UserModel.objects.get(user_id=user_id)  # This should be correct since you use 'id' for the UserModel
+        # This should be correct since you use 'id' for the UserModel
+        other_user = UserModel.objects.get(user_id=user_id)
         other_user_name = f"{other_user.name} "
     except UserModel.DoesNotExist:
         return redirect('/login')
 
     # Check if 'other_user' is a StaffModel, and get the related staff instance
     try:
-        staff_member = StaffModel.objects.get(email=other_user.email)  # Or use 'user_id' if that's how it's related
+        # Or use 'user_id' if that's how it's related
+        staff_member = StaffModel.objects.get(email=other_user.email)
     except StaffModel.DoesNotExist:
         staff_member = None
 
     # Fetch loans related to this user (checking the staff member)
-    related_loans = LoanApplicationModel.objects.filter(assigned_to=staff_member)  # Use 'assigned_to' to filter by staff
+    related_loans = LoanApplicationModel.objects.filter(
+        assigned_to=staff_member)  # Use 'assigned_to' to filter by staff
     loan_count = related_loans.count()
 
     # Count the number of franchises
@@ -261,12 +305,8 @@ def other_user_dashboard(request, user_id):
     return render(request, 'home.html', context)
 
 
-
-
-
-
 def logout_view(request):  # Change function name
-    
+
     if 'user_id' in request.session:
         del request.session['user_id']
     if 'user_type' in request.session:

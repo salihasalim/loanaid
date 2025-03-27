@@ -8,44 +8,58 @@ from django.http import JsonResponse
 from UserApp.forms import *
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 def loanform(request):
-    user_id = request.session.get('user_id', None)
-    if user_id is None:
+    user_id = request.session.get('user_id')
+    user_type = request.session.get('user_type')
+
+    if not user_id or not user_type:
+        logger.warning("Unauthorized access attempt. Redirecting to /login")
         return redirect('/login')
 
-    user_type = request.session.get('user_type', None)
+    logger.info(f"User accessing loan form: ID={user_id}, Type={user_type}")
 
-    # Check for Admin
-    if user_type == 'admin':
-        try:
+    # Initialize variables
+    loan = LoanModel.objects.none()  
+    username = "User"
+
+    try:
+        if user_type == 'admin':
             admin = AdminModel.objects.get(pk=user_id)
-        except AdminModel.DoesNotExist:
-            return redirect('/login')
+            username = f"{admin.admin_first_name} {admin.admin_last_name}".strip()
 
-        admin_name = f"{admin.admin_first_name} {admin.admin_last_name}" if admin.admin_last_name else f"{admin.admin_first_name}"
+            if admin.is_superadmin:
+                loan = LoanModel.objects.all()
+            elif admin.is_staff:
+                connected_franchises = Franchise.objects.filter(staff=admin)
+                loan = LoanModel.objects.filter(franchise__in=connected_franchises)
+            else:
+                loan = LoanModel.objects.filter(franchise=admin)
 
-        if admin.is_superadmin:
-            loan = LoanModel.objects.all()
-        elif admin.is_staff:
-            connected_franchises = Franchise.objects.filter(staff=admin)
-            loan = LoanModel.objects.filter(franchise__in=connected_franchises)
-        else:
-            loan = LoanModel.objects.filter(franchise=admin)
-
-    # Check for Staff
-    elif user_type == 'staff':
-        try:
+        elif user_type == 'staff':
             staff = StaffModel.objects.get(pk=user_id)
-        except StaffModel.DoesNotExist:
+            username = f"{staff.first_name} {staff.last_name}".strip()
+            loan = LoanModel.objects.filter(franchise=staff.franchise)
+
+        elif user_type == 'franchise':
+            franchise = Franchise.objects.get(pk=user_id)
+            username = franchise.name
+            loan = LoanModel.objects.filter(franchise=franchise)
+
+        elif user_type == 'executive':
+            executive = UserModel.objects.get(pk=user_id)
+            username = executive.name
+            loan = LoanModel.objects.filter(executive=executive)
+
+        else:
+            logger.warning(f"Invalid user type detected: {user_type}. Redirecting to /login")
             return redirect('/login')
 
-        staff_name = f"{staff.first_name} {staff.last_name if staff.last_name else ''}"
-
-        # Assuming staff can only see loans assigned to them or their franchise
-        # connected_franchises = Franchise.objects.filter(staff=staff)
-        loan = LoanModel.objects.all()
-
-    else:
+    except Exception as e:
+        logger.error(f"Error fetching user details: {e}")
         return redirect('/login')
 
     status = StatusModel.objects.all()
@@ -58,27 +72,25 @@ def loanform(request):
         if form.is_valid():
             loan_form = form.save(commit=False)
 
-            # Only admins can assign a franchise if not superadmin or staff
+            # Assign to the appropriate model based on user type
             if user_type == 'admin' and not admin.is_superadmin and not admin.is_staff:
                 loan_form.franchise = admin
             elif user_type == 'staff':
-                loan_form.franchise = staff.franchise  # Assuming staff has a franchise
+                loan_form.franchise = staff.franchise
+            elif user_type == 'franchise':
+                loan_form.franchise = franchise
+            elif user_type == 'executive':
+                loan_form.executive = executive
 
             loan_form.save()
 
             for file in files:
-                UploadedFile.objects.create(
-                    file=file,
-                    loan_application=loan_form
-                )
+                UploadedFile.objects.create(file=file, loan_application=loan_form)
 
             return redirect('/')
 
     else:
         form = LoanApplicationForm()
-
-    # If user is admin, show their name, else show staff name
-    username = admin_name if user_type == 'admin' else staff_name
 
     return render(request, 'loan-form.html', {
         'username': username,
@@ -87,6 +99,7 @@ def loanform(request):
         'bank': bank,
         'form': form
     })
+
 
 
 
