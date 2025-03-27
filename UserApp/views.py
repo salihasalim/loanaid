@@ -39,6 +39,7 @@ def register(request):
 
 def login(request):
     error = None
+
     if request.method == 'POST':
         identifier = request.POST.get('identifier')
         password = request.POST.get('password')
@@ -59,21 +60,46 @@ def login(request):
             try:
                 franchise = Franchise.objects.get(email=identifier)
                 
-                # Password verification
                 if check_password(password, franchise.password):
-                    # Check payment status
-                    if franchise.payment_status != 'active':
-                        # Redirect to payment confirmation page instead of direct UPI link
-                        request.session['franchise_id'] = str(franchise.pk)
-                        request.session['requires_payment'] = True
-                        return redirect('payment_redirect')
-                    
-                    user, user_type = franchise, 'franchise'
-                    
+                    if franchise.payment_status:  # ✅ Corrected Boolean check
+                        request.session.flush()
+                        request.session['user_id'] = str(franchise.pk)
+                        request.session['user_type'] = 'franchise'
+                        
+                        # Remove old session flags
+                        request.session.pop('requires_payment', None)
+
+                        request.session.set_expiry(3600)  # 1-hour session expiry
+                        logger.info(f"Franchise login successful (ID: {franchise.pk})")
+                        return redirect('/franchise_dashboard')
+
+                    # If payment is not active, redirect to payment confirmation page
+                    request.session['franchise_id'] = str(franchise.pk)
+                    request.session['requires_payment'] = True
+                    return redirect('payment_redirect')
+
             except Franchise.DoesNotExist:
                 pass
 
-        # Rest of your existing login logic remains the same...
+        # Check Staff
+        if not user:
+            try:
+                staff = StaffModel.objects.get(email=identifier)
+                if password == staff.password:  # ⚠️ Only if passwords are not hashed (Fix ASAP)
+                    user, user_type = staff, 'staff'
+            except StaffModel.DoesNotExist:
+                pass
+
+        # Check Executive
+        if not user:
+            try:
+                executive = UserModel.objects.get(email=identifier)
+                if check_password(password, executive.password):
+                    user, user_type = executive, 'executive'
+            except UserModel.DoesNotExist:
+                pass
+
+        # **Login Handling**
         if user:
             request.session.flush()  # Clear old session
             request.session['user_id'] = str(user.pk)
@@ -82,7 +108,7 @@ def login(request):
 
             logger.info(f"Login successful: {user_type} (ID: {user.pk})")
 
-            # Redirect based on user type
+            # **Redirect based on user type**
             if user_type == 'admin':
                 return redirect('/')
             elif user_type == 'franchise':
@@ -94,12 +120,16 @@ def login(request):
         else:
             error = "Invalid credentials. Please try again."
             logger.warning(f"Login failed for identifier: {identifier}")
+            messages.error(request, "Invalid credentials. Please try again.")
 
     return render(request, 'login.html', {'error': error})
 
+
+from django.shortcuts import render
+
 def payment_redirect(request):
     """
-    Render a page with UPI payment instructions and link
+    Render a page with UPI payment instructions and auto-redirect using JavaScript.
     """
     # Verify session data
     franchise_id = request.session.get('franchise_id')
@@ -108,48 +138,54 @@ def payment_redirect(request):
     if not franchise_id or not requires_payment:
         return redirect('login')
 
-    # UPI payment details
+    # UPI Payment Deep Link
     upi_id = 'malavika2bcomft@okaxis'
     payment_amount = 500  # Example amount
     payment_note = 'Franchise Membership Payment'
 
+    upi_link = f"upi://pay?pa={upi_id}&pn=Franchise&mc=&tid=&tr=&tn={payment_note}&am={payment_amount}&cu=INR"
+
     context = {
-        'upi_id': upi_id,
-        'payment_amount': payment_amount,
-        'payment_note': payment_note
+        'upi_link': upi_link
     }
 
     return render(request, 'payment_redirect.html', context)
 
+
 def payment_confirmation(request):
-    """
-    Handle payment confirmation logic
-    """
     franchise_id = request.session.get('franchise_id')
-    requires_payment = request.session.get('requires_payment', False)
-    
-    if not franchise_id or not requires_payment:
+
+    if not franchise_id:
         return redirect('login')
 
     if request.method == 'POST':
-        # Here you would typically verify the payment 
-        # For now, we'll just update the status
+        screenshot = request.FILES.get('payment_screenshot')
+        transaction_id = request.POST.get('transaction_id', str(uuid.uuid4()))  # Generate random ID if not provided
+
         try:
             franchise = Franchise.objects.get(pk=franchise_id)
-            franchise.payment_status = 'active'
+            
+            # Create a payment entry
+            payment = Payment.objects.create(
+                franchise=franchise,
+                transaction_id=transaction_id,
+                payment_screenshot=screenshot,
+                status='pending'  # Admin verifies manually
+            )
+
+            # Mark franchise as pending verification
+            franchise.payment_status = False
             franchise.save()
 
-            # Clear payment-related session data
-            del request.session['franchise_id']
-            del request.session['requires_payment']
+            messages.success(request, "Payment receipt uploaded! We will verify it soon.")
+            return redirect('/franchise_dashboard')  # Redirect to user dashboard
 
-            messages.success(request, "Payment successful! You can now log in.")
-            return redirect('login')
-        
         except Franchise.DoesNotExist:
             messages.error(request, "Franchise not found.")
 
-    return redirect('login')
+    return redirect('/franchise_dashboard')
+
+
 
 
 def home(request):

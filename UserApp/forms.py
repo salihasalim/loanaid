@@ -292,10 +292,14 @@ class ProfileUpdateForm(forms.ModelForm):
         super(ProfileUpdateForm, self).__init__(*args, **kwargs)
 
 
+from django import forms
+from .models import Franchise
+
 class FranchiseForm(forms.ModelForm):
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Confirm Password"}),
+            attrs={"class": "form-control", "placeholder": "Confirm Password"}
+        ),
         required=True,
     )
 
@@ -317,7 +321,7 @@ class FranchiseForm(forms.ModelForm):
             "wallet_balance",
             "payment_status",
             "is_franchise",
-
+            "screenshot",  # ✅ Ensure this field is present
         ]
         widgets = {
             "franchise_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Franchise Name"}),
@@ -335,7 +339,9 @@ class FranchiseForm(forms.ModelForm):
             "wallet_balance": forms.TextInput(attrs={"class": "form-control", "placeholder": "Wallet Balance"}),
             "payment_status": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "is_franchise": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "screenshot": forms.ClearableFileInput(attrs={"class": "form-control"}),  # ✅ Updated for file uploads
         }
+
 
     def clean_ac_no(self):
         """ Validate Account Number (should be 9 to 18 digits). """
