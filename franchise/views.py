@@ -80,6 +80,19 @@ def list_franchise(request):
 
     return render(request, "list_franchise.html", {"franchises": franchises})
 
+def view_franchise_profile(request):
+    # Check if the franchise is logged in
+    franchise_id = request.session.get("franchise_id")
+    if not franchise_id:
+        messages.error(request, "Unauthorized access. Please log in.")
+        return redirect("franchise_login")
+
+    # Fetch franchise details
+    franchise = get_object_or_404(Franchise, franchise_id=franchise_id)
+
+    return render(request, "profile.html", {"franchise": franchise})
+
+
 def delete_franchise(request, franchise_id):
     # Check authorization
     user_id = request.session.get('user_id')

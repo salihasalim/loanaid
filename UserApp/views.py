@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout as django_logout
@@ -20,9 +21,6 @@ from django.urls import reverse
 import logging
 
 logger = logging.getLogger(__name__)
-
-from datetime import datetime
-from django.shortcuts import redirect, render
 
 
 def register(request):
@@ -59,18 +57,20 @@ def login(request):
         if not user:
             try:
                 franchise = Franchise.objects.get(email=identifier)
-                
+
                 if check_password(password, franchise.password):
                     if franchise.payment_status:  # ✅ Corrected Boolean check
                         request.session.flush()
                         request.session['user_id'] = str(franchise.pk)
                         request.session['user_type'] = 'franchise'
-                        
+
                         # Remove old session flags
                         request.session.pop('requires_payment', None)
 
-                        request.session.set_expiry(3600)  # 1-hour session expiry
-                        logger.info(f"Franchise login successful (ID: {franchise.pk})")
+                        request.session.set_expiry(
+                            3600)  # 1-hour session expiry
+                        logger.info(
+                            f"Franchise login successful (ID: {franchise.pk})")
                         return redirect('/franchise_dashboard')
 
                     # If payment is not active, redirect to payment confirmation page
@@ -85,7 +85,8 @@ def login(request):
         if not user:
             try:
                 staff = StaffModel.objects.get(email=identifier)
-                if password == staff.password:  # ⚠️ Only if passwords are not hashed (Fix ASAP)
+                # ⚠️ Only if passwords are not hashed (Fix ASAP)
+                if password == staff.password:
                     user, user_type = staff, 'staff'
             except StaffModel.DoesNotExist:
                 pass
@@ -125,8 +126,6 @@ def login(request):
     return render(request, 'login.html', {'error': error})
 
 
-from django.shortcuts import render
-
 def payment_redirect(request):
     """
     Render a page with UPI payment instructions and auto-redirect using JavaScript.
@@ -139,7 +138,7 @@ def payment_redirect(request):
         return redirect('login')
 
     # UPI Payment Deep Link
-    upi_id = 'malavika2bcomft@okaxis'
+    upi_id = '8138911511@ybl'
     payment_amount = 500  # Example amount
     payment_note = 'Franchise Membership Payment'
 
@@ -160,11 +159,12 @@ def payment_confirmation(request):
 
     if request.method == 'POST':
         screenshot = request.FILES.get('payment_screenshot')
-        transaction_id = request.POST.get('transaction_id', str(uuid.uuid4()))  # Generate random ID if not provided
+        transaction_id = request.POST.get('transaction_id', str(
+            uuid.uuid4()))  # Generate random ID if not provided
 
         try:
             franchise = Franchise.objects.get(pk=franchise_id)
-            
+
             # Create a payment entry
             payment = Payment.objects.create(
                 franchise=franchise,
@@ -177,15 +177,15 @@ def payment_confirmation(request):
             franchise.payment_status = False
             franchise.save()
 
-            messages.success(request, "Payment receipt uploaded! We will verify it soon.")
-            return redirect('/franchise_dashboard')  # Redirect to user dashboard
+            messages.success(
+                request, "Payment receipt uploaded! We will verify it soon.")
+            # Redirect to user dashboard
+            return redirect('/franchise_dashboard')
 
         except Franchise.DoesNotExist:
             messages.error(request, "Franchise not found.")
 
     return redirect('/franchise_dashboard')
-
-
 
 
 def home(request):
@@ -386,7 +386,6 @@ def create_staff(request):
             return redirect('/')  # Redirect non-admin users
 
         if request.method == 'POST':
-            # Include files for uploads
             form = StaffModelForm(request.POST, request.FILES)
             if form.is_valid():
                 staff = form.save(commit=False)
@@ -394,8 +393,7 @@ def create_staff(request):
                 messages.success(request, "Staff member added successfully!")
                 return redirect('/')  # Redirect after successful creation
             else:
-                messages.error(
-                    request, "There was an error in the form. Please correct it.")
+                messages.error(request, "There was an error in the form. Please correct it.")
 
         else:
             form = StaffModelForm()

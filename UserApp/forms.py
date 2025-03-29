@@ -2,7 +2,6 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate
-
 from .models import *
 
 
@@ -178,6 +177,7 @@ class StaffModelForm(forms.ModelForm):
             "password",
             "is_active",
             "is_staff",
+            "employee_id"
         ]
         widgets = {
             "first_name": forms.TextInput(
@@ -204,6 +204,7 @@ class StaffModelForm(forms.ModelForm):
                     "placeholder": "Phone Number",
                 }
             ),
+            "employee_id": forms.TextInput(attrs={"class": "form-control", "readonly": "readonly"}),
             "password": forms.PasswordInput(
                 attrs={
                     "class": "form-control form-control-user",
@@ -291,10 +292,6 @@ class ProfileUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProfileUpdateForm, self).__init__(*args, **kwargs)
 
-
-from django import forms
-from .models import Franchise
-
 class FranchiseForm(forms.ModelForm):
     confirm_password = forms.CharField(
         widget=forms.PasswordInput(
@@ -306,6 +303,7 @@ class FranchiseForm(forms.ModelForm):
     class Meta:
         model = Franchise
         fields = [
+            "referral_code",
             "franchise_name",
             "franchise_owner",
             "franchise_place",
@@ -321,9 +319,10 @@ class FranchiseForm(forms.ModelForm):
             "wallet_balance",
             "payment_status",
             "is_franchise",
-            "screenshot",  # ✅ Ensure this field is present
+            "screenshot",
         ]
         widgets = {
+            "referral_code": forms.TextInput(attrs={"class": "form-control", "readonly": "readonly"}),
             "franchise_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Franchise Name"}),
             "franchise_owner": forms.TextInput(attrs={"class": "form-control", "placeholder": "Franchise Owner"}),
             "franchise_place": forms.TextInput(attrs={"class": "form-control", "placeholder": "Franchise Place"}),
@@ -339,35 +338,35 @@ class FranchiseForm(forms.ModelForm):
             "wallet_balance": forms.TextInput(attrs={"class": "form-control", "placeholder": "Wallet Balance"}),
             "payment_status": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "is_franchise": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "screenshot": forms.ClearableFileInput(attrs={"class": "form-control"}),  # ✅ Updated for file uploads
+            "screenshot": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pre-fill referral code if an instance exists
+        if self.instance and self.instance.referral_code:
+            self.fields["referral_code"].initial = self.instance.referral_code
 
     def clean_ac_no(self):
         """ Validate Account Number (should be 9 to 18 digits). """
         ac_no = self.cleaned_data.get("ac_no")
         if not ac_no.isdigit() or not (9 <= len(ac_no) <= 18):
-            raise ValidationError(
-                "Account Number must be between 9 to 18 digits and contain only numbers.")
+            raise ValidationError("Account Number must be between 9 to 18 digits and contain only numbers.")
         return ac_no
 
     def clean_ifsc_code(self):
         """ Validate IFSC Code (standard format: 4 letters, 0, 6 alphanumeric). """
         ifsc_code = self.cleaned_data.get("ifsc_code")
 
-        # Check if IFSC code is empty
         if not ifsc_code:
             raise ValidationError("IFSC code is required.")
 
-        # Remove any whitespace
         ifsc_code = ifsc_code.strip().upper()
-
         import re
-        ifsc_pattern = r'^[A-Z]{4}0[A-Z0-9]{6}$'
+        ifsc_pattern = r"^[A-Z]{4}0[A-Z0-9]{6}$"
 
         if not re.match(ifsc_pattern, ifsc_code):
-            raise ValidationError(
-                "Enter a valid IFSC code (e.g., HDFC0001234).")
+            raise ValidationError("Enter a valid IFSC code (e.g., HDFC0001234).")
 
         return ifsc_code
 
@@ -379,6 +378,7 @@ class FranchiseForm(forms.ModelForm):
 
         if password and confirm_password and password != confirm_password:
             raise ValidationError("Passwords do not match.")
+
 
 
 class LoanApplicationForm(forms.ModelForm):

@@ -13,4 +13,5 @@ admin.site.register(StaffSelectionModel)
 admin.site.register(StaffAssignmentModel)
 admin.site.register(StaffModel)
 admin.site.register(Franchise)
-admin.site.register(UserModel)
+admin.site.register(UserModel
+                    )

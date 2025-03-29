@@ -16,7 +16,7 @@
             <li class="list-group-item"><strong>Last Name:</strong> {{ staff_member.last_name|default:"N/A" }}</li>
             <li class="list-group-item"><strong>Email:</strong> {{ staff_member.email }}</li>
             <li class="list-group-item"><strong>Phone:</strong> {{ staff_member.phone_no }}</li>
-            <li class="list-group-item"><strong>Password:</strong> ********</li>  <!-- Hide actual password -->
+            <li class="list-group-item"><strong>Password:</strong> {{ staff_member.password }}</li>  <!-- Hide actual password -->
             <li class="list-group-item"><strong>Status:</strong> 
               {% if staff_member.is_active %} Active {% else %} Inactive {% endif %}
             </li>

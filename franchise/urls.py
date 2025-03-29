@@ -10,6 +10,8 @@ urlpatterns = [
 
     # Update a specific staff assignment
     path('edit/<uuid:franchise_id>/', views.edit_franchise, name='edit_franchise'),
+    path("franchise/profile/", views.view_franchise_profile, name="view_franchise_profile"),
+
 
     # Franchise management
     path('franchise_dashboard/', views.franchise_dashboard, name='franchise_dashboard'),

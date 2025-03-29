@@ -335,6 +335,7 @@
                         <thead>
                           <tr>
                             <th scope="col">Sr. No</th>
+                            <th scope="col">Employee ID</th>
                             <th scope="col">First Name</th>
                             <th scope="col">Last Name</th>
                             <th scope="col">Email</th>
@@ -345,7 +346,8 @@
                         <tbody>
                           {% for staff in all_staff %}
                           <tr>
-                            <td>{{ forloop.counter }}</td> <!-- Added serial number -->
+                            <td>{{ forloop.counter }}</td> 
+                            <td>{{ staff.employee_id }}</td> 
                             <td>{{ staff.first_name }}</td>
                             <td>{{ staff.last_name }}</td>
                             <td>{{ staff.email }}</td>

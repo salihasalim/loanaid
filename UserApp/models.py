@@ -66,6 +66,7 @@ class AdminModel(models.Model):
 
 class StaffModel(models.Model):
     staff_id = models.AutoField(primary_key=True)
+    employee_id = models.CharField(max_length=10, unique=True, blank=True, null=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(unique=True)
@@ -98,9 +99,18 @@ class StaffModel(models.Model):
 
     def save(self, *args, **kwargs):
         if self.profile_completed and not self.adhaar_no:
-            raise ValueError(
-                "Aadhaar number must be added before marking profile as completed."
-            )
+            raise ValueError("Aadhaar number must be added before marking profile as completed.")
+
+        # Auto-generate Employee ID if not set
+        if not self.employee_id:
+            last_staff = StaffModel.objects.exclude(employee_id__isnull=True).order_by('-staff_id').first()
+            if last_staff and last_staff.employee_id:
+                last_number = int(last_staff.employee_id.split('-')[-1]) + 1
+            else:
+                last_number = 1001  # Start from EMP-1001 if no previous records
+            
+            self.employee_id = f"EMP-{last_number}"
+
         super().save(*args, **kwargs)
 
 
