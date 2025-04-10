@@ -32,6 +32,9 @@ SECURE_REDIRECT_EXEMPT = ['upi://']
 
 
 
+
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -151,8 +154,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"  # Use your email provider's SMTP server
 EMAIL_PORT = 587  # Use 465 for SSL, 587 for TLS
 EMAIL_USE_TLS = True  # Use TLS for security
-EMAIL_HOST_USER = "malavika2bcomft@gmail.com"  # Your email address
-EMAIL_HOST_PASSWORD = "apai yxyj ixxi afzb"  # Use an app password for Gmail
-DEFAULT_FROM_EMAIL = "malavika2bcomft@gmail.com"
+EMAIL_HOST_USER =   ""# Your email address
+EMAIL_HOST_PASSWORD = ""# Use an app password for Gmail
+DEFAULT_FROM_EMAIL = ""
 
 
