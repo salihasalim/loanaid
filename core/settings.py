@@ -96,8 +96,8 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'loanaid_db',
-        'USER': 'root',
+        'NAME': 'laonaidapp$loanaid_db',
+        'USER': 'loanaidapp',
         'PASSWORD': 'Password@123',
         'HOST': 'loanaidapp.mysql.pythonanywhere-services.com',
         'PORT': '3306',
