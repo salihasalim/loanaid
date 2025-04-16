@@ -99,7 +99,7 @@ DATABASES = {
         'NAME': 'loanaid_db',
         'USER': 'root',
         'PASSWORD': 'Password@123',
-        'HOST': 'loanaid76.mysql.pythonanywhere-services.com',
+        'HOST': 'loanaidapp.mysql.pythonanywhere-services.com',
         'PORT': '3306',
     }
 }
